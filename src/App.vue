@@ -37,6 +37,10 @@
   </v-app>
 </template>
 
+<style lang="scss">
+@import 'assets/css/global.scss';
+</style>
+
 <script>
 import HelloWorld from './components/HelloWorld'
 
