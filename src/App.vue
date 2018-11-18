@@ -5,13 +5,9 @@
         <span>Odysseus admin</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <!-- <v-btn
-        flat
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-      </v-btn> -->
+      <v-btn flat class="text-transform-none">
+        <span class="mr-2">BACKEND: {{backendUri}}</span>
+      </v-btn>
 
       <v-tabs
         slot="extension"
@@ -42,17 +38,11 @@
 </style>
 
 <script>
-import HelloWorld from './components/HelloWorld'
+import { mapState } from 'vuex'
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  },
-  data () {
-    return {
-      //
-    }
-  }
+  computed: mapState([
+    'backendUri'
+  ])
 }
 </script>
