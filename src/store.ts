@@ -5,9 +5,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    backendUri: "http://localhost:8888"
+    backend: {
+      uri: "http://localhost:8888",
+      username: "",
+      password: ""
+    }
   },
   mutations: {
+    setBackend (state, backend) {
+      state.backend = backend;
+    }
   },
   actions: {
 

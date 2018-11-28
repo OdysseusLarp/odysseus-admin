@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-container fluid>
-      <b-alert variant="danger" :show="!!error">Error loading data: {{ error }}</b-alert>
+      <b-alert variant="danger" :show="!!error" :hover="true">Error loading data: {{ error }}</b-alert>
     </b-container>
     <b-table :items="taskboxes" :fields="fields"></b-table>
   </div>
@@ -59,7 +59,7 @@
       fetchData () {
         this.loading = true
         this.error = null
-        axios.get("/engineering/box")
+        axios.get("/engineering/box", { baseURL: this.$store.state.backend.uri })
           .then(response => {
             this.taskboxes = response.data;
             this.loading = false;

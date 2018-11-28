@@ -11,12 +11,13 @@
 
         <b-navbar-nav class="ml-auto">
           <b-nav-form>
-            <b-button size="sm" class="my-2 my-sm-0">{{backendUri}}</b-button>
+            <b-button size="sm" class="my-2 my-sm-0" v-b-modal.backendChooserModal>{{backendUri}}</b-button>
           </b-nav-form>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
 
+    <backend-chooser></backend-chooser>
     <router-view></router-view>
   </div>
 </template>
@@ -26,11 +27,15 @@
 </style>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
+import BackendChooser from '@/components/BackendChooser.vue';
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ])
+  components: {
+    BackendChooser,
+  },
+  computed: mapState({
+    'backendUri': state => state.backend.uri
+  })
 }
 </script>
