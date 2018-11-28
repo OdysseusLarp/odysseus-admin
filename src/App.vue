@@ -1,36 +1,24 @@
 <template>
-  <v-app>
-    <v-toolbar app>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>Odysseus admin</span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn flat class="text-transform-none">
-        <span class="mr-2">BACKEND: {{backendUri}}</span>
-      </v-btn>
+  <div>
+    <b-navbar toggleable="sm" variant="light" type="light">
+      <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
+      <b-navbar-brand to="/">Odysseus admin</b-navbar-brand>
+      <b-collapse is-nav id="nav_collapse">
+        <b-navbar-nav tabs>
+          <b-nav-item to="/taskbox">Taskboxes</b-nav-item>
+          <b-nav-item to="/tasks">Tasks</b-nav-item>
+        </b-navbar-nav>
 
-      <v-tabs
-        slot="extension"
-        color="transparent">
-        <v-tab to="/">
-          Home
-        </v-tab>
-        <v-tab to="/taskbox">
-          Taskboxes
-        </v-tab>
-        <v-tab to="/tasks">
-          Tasks
-        </v-tab>
-      </v-tabs>
-    </v-toolbar>
+        <b-navbar-nav class="ml-auto">
+          <b-nav-form>
+            <b-button size="sm" class="my-2 my-sm-0">{{backendUri}}</b-button>
+          </b-nav-form>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
 
-    <v-content>
-      <v-container fluid>
-        <router-view></router-view>
-      </v-container>
-    </v-content>
-
-  </v-app>
+    <router-view></router-view>
+  </div>
 </template>
 
 <style lang="scss">

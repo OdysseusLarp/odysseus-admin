@@ -1,5 +1,7 @@
 <template>
   <div class="about">
-    <h1>Tasks</h1>
+    <b-container fluid class="my-4">
+      <h1>Tasks</h1>
+    </b-container>
   </div>
 </template>

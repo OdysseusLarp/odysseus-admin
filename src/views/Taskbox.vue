@@ -1,7 +1,8 @@
 <template>
   <div class="about">
-    <h1>Taskboxes</h1>
-    <p>URI: {{backendUri}}</p>
+    <b-container fluid class="my-4">
+      <h1>Taskboxes</h1>
+    </b-container>
     <TaskboxList></TaskboxList>
   </div>
 </template>

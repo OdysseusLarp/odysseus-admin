@@ -1,20 +1,9 @@
 <template>
   <div>
-    <v-alert type="error" :value="error">Error loading data: {{ error }}</v-alert>
-    <v-data-table
-      :headers="headers"
-      :items="taskboxes"
-      class="elevation-1"
-      v-bind:loading='loading'
-      v-bind:rows-per-page-items='[ 50, 100, { "text": "$vuetify.dataIterator.rowsPerPageAll", "value": -1 } ]'
-    >
-      <template slot="items" slot-scope="props">
-        <td>{{ props.item.id }}</td>
-        <td>{{ props.item.updated_at }}</td>
-        <td>{{ props.item.version }}</td>
-        <td>{{ props.item.value }}</td>
-      </template>
-    </v-data-table>
+    <b-container fluid>
+      <b-alert variant="danger" :show="!!error">Error loading data: {{ error }}</b-alert>
+    </b-container>
+    <b-table :items="taskboxes" :fields="fields"></b-table>
   </div>
 </template>
 
@@ -27,23 +16,24 @@
       return {
         loading: true,
         error: false,
-        headers: [
+        fields: [
           {
-            text: 'Taskbox ID',
-            align: 'left',
-            value: 'id'
+            key: 'id',
+            sortable: true
           },
           {
-            text: 'Updated',
-            align: 'left',
-            value: 'updated_at'
+            key: 'updated_at',
+            sortable: true
           },
           {
-            text: 'Version',
-            align: 'left',
-            value: 'version'
+            key: 'version',
+            sortable: true
           },
-          { text: 'Value', value: 'value' },
+          {
+            key: 'value',
+            sortable: true,
+            formatter: 'formatValue'
+          },
         ],
         taskboxes: [
         ]
@@ -59,6 +49,13 @@
       '$route': 'fetchData'
     },
     methods: {
+      formatValue (value) {
+        if (value) {
+          var copy = Object.assign({}, value);
+          delete copy["config"];
+          return JSON.stringify(copy);
+        }
+      },
       fetchData () {
         this.loading = true
         this.error = null
@@ -74,7 +71,5 @@
           });
       }
     }
-
-
   }
 </script>
