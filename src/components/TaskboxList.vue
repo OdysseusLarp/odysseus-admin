@@ -3,7 +3,21 @@
     <b-container fluid>
       <b-alert variant="danger" :show="!!error" :hover="true">Error loading data: {{ error }}</b-alert>
     </b-container>
-    <b-table :items="taskboxes" :fields="fields" v-on:row-clicked="rowClicked"></b-table>
+    <b-table hover :items="taskboxes" :fields="fields" v-on:row-clicked="rowClicked">
+      <template slot="updated_at" slot-scope="data">
+        <timeago
+          :id="`updated-${data.item.id}`"
+          :class="classFromTime(data.item.updated_at)"
+          :datetime="data.item.updated_at"
+          auto-update></timeago>
+        <b-popover :target="`updated-${data.item.id}`"
+                   :placement="right"
+                   triggers="hover"
+                   :content="localTime(data.item.updated_at)"
+                   delay="500">
+        </b-popover>
+      </template>
+    </b-table>
     <taskbox-editor ref="taskboxEditor" @saved="fetchData"></taskbox-editor>
 
     <b-container fluid>
@@ -16,6 +30,9 @@
 <script>
 import axiox from 'axios'
 import TaskboxEditor from '@/components/TaskboxEditor.vue';
+
+// Show time in red if unmodified for over this many milliseconds
+const WARN_UNMODIFIED = 10 * 60 * 1000
 
 export default {
   components: {
@@ -64,6 +81,16 @@ export default {
         delete copy["config"];
         return JSON.stringify(copy);
       }
+    },
+    classFromTime (time) {
+      var d = Date.parse(time)
+      if (Date.now() - d > WARN_UNMODIFIED) {
+        return "text-danger"
+      }
+    },
+    localTime (time) {
+      var d = Date.parse(time)
+      return new Date(d).toString().replace(/\(.*\)/, "")
     },
     fetchData () {
       this.loading = true
