@@ -11,7 +11,7 @@
           :datetime="data.item.updated_at"
           auto-update></timeago>
         <b-popover :target="`updated-${data.item.id}`"
-                   :placement="right"
+                   placement="right"
                    triggers="hover"
                    :content="localTime(data.item.updated_at)"
                    delay="500">
