@@ -1,5 +1,7 @@
 # odysseus-admin
 
+Admin UI (for use by GM's) for the [Odysseus backend](https://github.com/OdysseusLarp/odysseus-backend).
+
 ## Project setup
 ```
 npm install
