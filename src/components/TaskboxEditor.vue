@@ -72,10 +72,19 @@ export default {
           .then(response => {
             console.log("Success")
             this.$emit('saved')
+            this.$notify({
+              title: 'Taskbox saved successfully',
+              type: 'success'
+            });
           })
           .catch(error => {
             console.log("Error saving box:", error)
             this.$emit('saved')
+            this.$notify({
+              title: 'Error saving taskbox',
+              text: '' + error,
+              type: 'error',
+            });
           });
       } else {
         evt.preventDefault()

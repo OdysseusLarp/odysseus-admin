@@ -19,6 +19,7 @@
 
     <backend-chooser></backend-chooser>
     <router-view></router-view>
+    <notifications position="bottom right"/>
   </div>
 </template>
 
