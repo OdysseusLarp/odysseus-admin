@@ -13,8 +13,8 @@
         <b-popover :target="`updated-${data.item.id}`"
                    placement="right"
                    triggers="hover"
-                   :content="localTime(data.item.updated_at)"
                    delay="500">
+          <template>{{localTime(data.item.updated_at)}}</template>
         </b-popover>
       </template>
     </b-table>
