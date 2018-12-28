@@ -5,17 +5,7 @@
     </b-container>
     <b-table hover :items="taskboxes" :fields="fields" v-on:row-clicked="rowClicked">
       <template slot="updated_at" slot-scope="data">
-        <timeago
-          :id="`updated-${data.item.id}`"
-          :class="classFromTime(data.item.updated_at)"
-          :datetime="data.item.updated_at"
-          auto-update></timeago>
-        <b-popover :target="`updated-${data.item.id}`"
-                   placement="right"
-                   triggers="hover"
-                   delay="500">
-          <template>{{localTime(data.item.updated_at)}}</template>
-        </b-popover>
+        <time-ago :time="data.item.updated_at" :warn="600"></time-ago>
       </template>
       <template slot="value" slot-scope="data">{{formatValue(data.item.value)}}</template>
       <template slot="config" slot-scope="data">{{formatConfig(data.item.value)}}</template>
@@ -31,14 +21,13 @@
 
 <script>
 import axiox from 'axios'
-import TaskboxEditor from '@/components/TaskboxEditor.vue';
-
-// Show time in red if unmodified for over this many milliseconds
-const WARN_UNMODIFIED = 10 * 60 * 1000
+import TaskboxEditor from '@/components/TaskboxEditor.vue'
+import TimeAgo from '@/components/TimeAgo.vue'
 
 export default {
   components: {
     TaskboxEditor,
+    TimeAgo,
   },
   data () {
     return {
@@ -95,16 +84,6 @@ export default {
       if (value && value.config) {
         return JSON.stringify(value.config, null, 1)
       }
-    },
-    classFromTime (time) {
-      var d = Date.parse(time)
-      if (Date.now() - d > WARN_UNMODIFIED) {
-        return "text-danger"
-      }
-    },
-    localTime (time) {
-      var d = Date.parse(time)
-      return new Date(d).toString().replace(/\(.*\)/, "")
     },
     fetchData () {
       this.loading = true
