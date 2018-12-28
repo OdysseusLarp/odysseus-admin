@@ -2,14 +2,26 @@
   <div>
     <b-modal id="taskboxEditorModal" ref="taskboxEditorModal" :title="existing ? 'Edit Taskbox' : 'New Taskbox'" @ok="handleOk">
       <b-form>
+        
         <b-form-group label="Taskbox ID:"
                       label-for="id">
           <b-input type="text" v-model="id" id="id" required :state="idState"></b-input>
         </b-form-group>
+
         <b-form-group label="Taskbox content:"
                       label-for="json">
           <b-form-textarea v-model="json" id="json" :rows="10" :state="jsonState"></b-form-textarea>
         </b-form-group>
+
+        <b-dropdown size="sm" text="Apply preset" v-if="presets">
+          <b-dropdown-item
+            v-for="preset in Object.keys(presets)"
+            :key="preset"
+            @click="applyPreset(preset)">
+              {{preset}}
+          </b-dropdown-item>
+        </b-dropdown>
+
       </b-form>
     </b-modal>
   </div>
@@ -27,6 +39,7 @@ export default {
       idState: null,
       json: "",
       jsonState: null,
+      presets: undefined,
     }
   },
 
@@ -45,6 +58,7 @@ export default {
       this.existing = !!taskbox.id
       this.id = taskbox.id || ""
       this.json = JSON.stringify(taskbox.value || {}, null, 4)
+      this.presets = taskbox.value && taskbox.value.presets
       this.$refs.taskboxEditorModal.show()
     },
     validateId () {
@@ -60,6 +74,18 @@ export default {
       } catch (e) {
         this.jsonState = "invalid"
         return false
+      }
+    },
+    applyPreset(presetKey) {
+      try {
+        const value = JSON.parse(this.json)
+        const preset = value["presets"][presetKey]
+        for (const key of Object.keys(preset)) {
+          value[key] = preset[key]
+        }
+        this.json = JSON.stringify(value, null, 4)
+      } catch (e) {
+        console.log("Error applying preset", e)
       }
     },
     handleOk (evt) {
