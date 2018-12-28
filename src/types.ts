@@ -3,5 +3,6 @@ export interface State {
         uri: string,
         username?: string,
         password?: string,
+        autoRefresh?: number,
     }
 }

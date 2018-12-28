@@ -15,7 +15,8 @@ export default new Vuex.Store<State>({
     backend: {
       uri: "http://localhost:8888",
       username: "",
-      password: ""
+      password: "",
+      autoRefresh: 0,
     }
   },
   mutations: {

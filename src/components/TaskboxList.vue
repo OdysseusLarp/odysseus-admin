@@ -69,6 +69,15 @@ export default {
   created () {
     // fetch the data when the view is created and the data is already being observed
     this.fetchData()
+    if (this.$store.state.backend.autoRefresh > 0.5) {
+      this.timer = setInterval(this.fetchData, this.$store.state.backend.autoRefresh * 1000)
+    }
+  },
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = undefined
+    }
   },
   watch: {
     // call again the method if the route changes
