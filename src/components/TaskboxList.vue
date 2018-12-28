@@ -17,6 +17,8 @@
           <template>{{localTime(data.item.updated_at)}}</template>
         </b-popover>
       </template>
+      <template slot="value" slot-scope="data">{{formatValue(data.item.value)}}</template>
+      <template slot="config" slot-scope="data">{{formatConfig(data.item.value)}}</template>
     </b-table>
     <taskbox-editor ref="taskboxEditor" @saved="fetchData"></taskbox-editor>
 
@@ -55,11 +57,8 @@ export default {
           key: 'version',
           sortable: true
         },
-        {
-          key: 'value',
-          sortable: true,
-          formatter: 'formatValue'
-        },
+        'value',
+        'config',
       ],
       taskboxes: [
       ]
@@ -86,9 +85,15 @@ export default {
   methods: {
     formatValue (value) {
       if (value) {
-        var copy = Object.assign({}, value);
-        delete copy["config"];
-        return JSON.stringify(copy);
+        var copy = Object.assign({}, value)
+        delete copy["config"]
+        delete copy["presets"]
+        return JSON.stringify(copy, null, 1)
+      }
+    },
+    formatConfig (value) {
+      if (value && value.config) {
+        return JSON.stringify(value.config, null, 1)
       }
     },
     classFromTime (time) {
