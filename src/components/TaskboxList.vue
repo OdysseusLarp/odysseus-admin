@@ -9,6 +9,9 @@
       </template>
       <template slot="value" slot-scope="data">{{formatValue(data.item.value)}}</template>
       <template slot="config" slot-scope="data">{{formatConfig(data.item.value)}}</template>
+      <template slot="delete" slot-scope="data">
+        <font-awesome-icon @click.stop="del(data.item)" icon="trash-alt" />
+      </template>
     </b-table>
     <taskbox-editor ref="taskboxEditor" @saved="fetchData"></taskbox-editor>
 
@@ -48,6 +51,10 @@ export default {
         },
         'value',
         'config',
+        {
+          key: 'delete',
+          label: '',
+        }
       ],
       taskboxes: [
       ]
@@ -105,6 +112,12 @@ export default {
     newTaskbox () {
       this.$refs.taskboxEditor.show({})
     },
+    del (item) {
+      if (confirm(`Really delete task box '${item.id}'?`)) {
+        axios.delete(`/engineering/box/${item.id}`)
+          .then(this.fetchData)
+      }
+    }
   }
 }
 </script>
