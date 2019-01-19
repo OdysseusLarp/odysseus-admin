@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Home from './views/Home.vue'
 import Taskbox from './views/Taskbox.vue'
 import Tasks from './views/Tasks.vue'
+import Social from './views/Social.vue';
 
 Vue.use(VueRouter)
 
@@ -22,6 +23,11 @@ export default new VueRouter({
       path: '/tasks',
       name: 'tasks',
       component: Tasks
+    },
+    {
+      path: '/social',
+      name: 'social',
+      component: Social
     },
   ]
 })

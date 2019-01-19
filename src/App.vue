@@ -7,6 +7,7 @@
         <b-navbar-nav tabs>
           <b-nav-item to="/taskbox">Taskboxes</b-nav-item>
           <b-nav-item to="/tasks">Tasks</b-nav-item>
+          <b-nav-item to="/social">Social</b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
