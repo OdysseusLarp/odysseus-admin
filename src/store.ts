@@ -13,6 +13,10 @@ const vuexPersist = new VuexPersist({
 const store = new Vuex.Store<State>({
   state: {
     dataBlobs: [],
+    info: {
+      text: "",
+      type: "",
+    },
     backend: {
       uri: "http://localhost:8888",
       username: "",
@@ -44,6 +48,9 @@ const store = new Vuex.Store<State>({
     setAllDataBlobs (state, datas) {
       state.dataBlobs = datas
     },
+    setInfo(state, info) {
+      state.info = info
+    }
   },
   actions: {
 

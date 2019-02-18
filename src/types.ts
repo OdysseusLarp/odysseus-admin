@@ -10,6 +10,10 @@ interface DataBlob {
 
 export interface State {
     dataBlobs: DataBlob[],
+    info: {
+        text: string,
+        type: string,
+    },
     backend: {
         uri: string,
         username?: string,

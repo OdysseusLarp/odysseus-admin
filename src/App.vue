@@ -11,6 +11,7 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
+          <b-nav-text :class="$store.state.info.type" style="padding-right: 1em">{{$store.state.info.text}}</b-nav-text>
           <b-nav-form>
             <b-button size="sm" class="my-2 my-sm-0" v-b-modal.backendChooserModal>{{backendUri}}</b-button>
           </b-nav-form>

@@ -4,11 +4,14 @@ import axios from 'axios'
 
 
 export function fetchAllDataBlobs() {
+  store.commit('setInfo', {text: 'Loading data...', type: ''})
   axios.get("/data", { baseURL: store.state.backend.uri })
   .then(response => {
+    store.commit('setInfo', {})
     store.commit('setAllDataBlobs', response.data)
   })
   .catch(e => {
+    store.commit('setInfo', {text: 'Error loading data', type: 'error'})
     console.error("Error fetching data blobs (retrying in 5 secs): ", e)
     setTimeout(fetchAllDataBlobs, 5000)
   })
