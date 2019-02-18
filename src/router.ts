@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from './views/Home.vue'
-import Taskbox from './views/Taskbox.vue'
+import DataBlobs from './views/DataBlobs.vue'
 import Tasks from './views/Tasks.vue'
 import Social from './views/Social.vue';
 
@@ -15,9 +15,9 @@ export default new VueRouter({
       component: Home
     },
     {
-      path: '/taskbox',
-      name: 'taskbox',
-      component: Taskbox
+      path: '/data',
+      name: 'data',
+      component: DataBlobs
     },
     {
       path: '/tasks',

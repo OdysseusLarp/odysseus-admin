@@ -5,7 +5,7 @@
       <b-navbar-brand to="/">Odysseus admin</b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav tabs>
-          <b-nav-item to="/taskbox">Taskboxes</b-nav-item>
+          <b-nav-item to="/data">Data stores</b-nav-item>
           <b-nav-item to="/tasks">Tasks</b-nav-item>
           <b-nav-item to="/social">Social</b-nav-item>
         </b-navbar-nav>

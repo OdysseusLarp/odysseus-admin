@@ -1,17 +1,27 @@
 <template>
   <div>
-    <b-modal id="taskboxEditorModal" ref="taskboxEditorModal" :title="existing ? 'Edit Taskbox' : 'New Taskbox'" @ok="handleOk">
+    <b-modal id="dataBlobEditorModal" ref="dataBlobEditorModal" :title="existing ? 'Edit data store' : 'New data store'" @ok="handleOk">
       <b-form>
         
-        <b-form-group label="Taskbox ID:"
+        <b-form-group label="Data type:"
+                      label-for="type">
+          <b-input type="text" v-model="type" id="type" required :state="typeState"></b-input>
+        </b-form-group>
+
+        <b-form-group label="Data ID:"
                       label-for="id">
           <b-input type="text" v-model="id" id="id" required :state="idState"></b-input>
         </b-form-group>
 
-        <b-form-group label="Taskbox content:"
+        <b-form-group label="Content:"
                       label-for="json">
           <b-form-textarea v-model="json" id="json" :rows="10" :state="jsonState"></b-form-textarea>
         </b-form-group>
+
+        <small v-if="patch">Provided fields will be updated, other fields will keep existing values.
+          <a href="#" @click.prevent="editRaw">Edit raw</a>
+        </small>
+        <small v-else>Content will overwrite the entire data store.</small>
 
         <b-dropdown size="sm" text="Apply preset" v-if="presets">
           <b-dropdown-item
@@ -29,17 +39,21 @@
 
 
 <script>
-import axiox from 'axios'
+import axios from 'axios'
 
 export default {
   data () {
     return {
+      originalData: {},
       existing: false,
       id: "",
+      type: "",
       idState: null,
+      typeState: null,
       json: "",
       jsonState: null,
       presets: undefined,
+      patch: true,
     }
   },
 
@@ -47,23 +61,44 @@ export default {
     id () {
       this.validateId();
     },
+    type() {
+      this.validateType();
+    },
     json () {
       this.validateJson();
     }, 
   },
 
   methods: {
-    show (taskbox) {
-      console.log("Edit taskbox", taskbox)
-      this.existing = !!taskbox.id
-      this.id = taskbox.id || ""
-      this.json = JSON.stringify(taskbox.value || {}, null, 4)
-      this.presets = taskbox.value && taskbox.value.presets
-      this.$refs.taskboxEditorModal.show()
+    show (data) {
+      console.log("Edit data blob:", data)
+      this.originalData = data
+      this.existing = !!data.id
+      this.id = data.id || ""
+      this.type = data.type || ""
+      this.json = JSON.stringify(this.filterData(data), null, 4)
+      this.presets = data.presets
+      this.patch = true
+      this.$refs.dataBlobEditorModal.show()
+    },
+    filterData(data) {
+      let copy = {...data}
+      delete copy["id"]
+      delete copy["type"]
+      delete copy["created_at"]
+      delete copy["updated_at"]
+      delete copy["presets"]
+      delete copy["version"]
+      return copy
     },
     validateId () {
       var valid = this.id.match(/^[a-zA-Z0-9_-]+$/)
       this.idState = (valid ? "valid" : "invalid")
+      return valid
+    },
+    validateType() {
+      var valid = this.type.match(/^[a-zA-Z0-9_-]+$/)
+      this.typeState = (valid ? "valid" : "invalid")
       return valid
     },
     validateJson () {
@@ -76,10 +111,14 @@ export default {
         return false
       }
     },
+    editRaw() {
+      this.patch = false
+      this.json = JSON.stringify(this.originalData || {}, null, 4)
+    },
     applyPreset(presetKey) {
       try {
         const value = JSON.parse(this.json)
-        const preset = value["presets"][presetKey]
+        const preset = this.originalData["presets"][presetKey]
         for (const key of Object.keys(preset)) {
           value[key] = preset[key]
         }
@@ -90,24 +129,24 @@ export default {
     },
     handleOk (evt) {
       if (this.validateId() && this.validateJson()) {
-        var box = {
+        var data = {
+          ...JSON.parse(this.json),
           id: this.id,
-          value: JSON.parse(this.json),
+          type: this.type,
         }
-        axios.post(`/engineering/box/${this.id}`, box)
+        let method = this.patch ? axios.patch : axios.post
+        method(`/data/${this.type}/${this.id}?force=true`, data)
           .then(response => {
             console.log("Success")
-            this.$emit('saved')
             this.$notify({
-              title: 'Taskbox saved successfully',
+              title: 'Data saved successfully',
               type: 'success'
             });
           })
           .catch(error => {
-            console.log("Error saving box:", error)
-            this.$emit('saved')
+            console.log("Error saving data blob:", error)
             this.$notify({
-              title: 'Error saving taskbox',
+              title: 'Error saving data',
               text: '' + error,
               type: 'error',
             });
