@@ -5,11 +5,15 @@ import './plugins/vue-fontawesome'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import { initDataBlobSync } from './store/DataBlobSync'
 
 import Notifications from 'vue-notification'
 Vue.use(Notifications)
 
 Vue.config.productionTip = false
+
+initDataBlobSync()
+
 
 new Vue({
   router,
