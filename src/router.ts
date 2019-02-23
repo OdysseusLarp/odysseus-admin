@@ -6,6 +6,7 @@ import Tasks from './views/Tasks.vue'
 import Social from './views/Social.vue';
 import ShipLog from './views/ShipLog.vue';
 import Fleet from './views/Fleet.vue';
+import Infoboard from './views/Infoboard.vue';
 
 Vue.use(VueRouter)
 
@@ -40,6 +41,11 @@ export default new VueRouter({
       path: '/ship-log',
       name: 'ship-log',
       component: ShipLog
+    },
+    {
+      path: '/infoboard',
+      name: 'infoboard',
+      component: Infoboard
     },
   ]
 })
