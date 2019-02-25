@@ -41,7 +41,7 @@ export default {
   components: { DataBlobList, DataBlobEditor },
   methods: {
     newDataBlob () {
-      this.$refs.dataBlobEditor.show({})
+      this.$refs.dataBlobEditor.show({ type: this.selected })
     },
   }
 }
