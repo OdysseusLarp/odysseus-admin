@@ -57,9 +57,13 @@
 
     methods: {
       handleOk () {
+        let uri = this.$data.uri
+        if (uri.endsWith('/')) {
+          uri = uri.substring(0, uri.length - 1)
+        }
         this.$store.commit({
           type: "setBackend",
-          uri: this.$data.uri,
+          uri,
           username: this.$data.username,
           password: this.$data.password,
           autoRefresh: this.$data.autoRefresh,
