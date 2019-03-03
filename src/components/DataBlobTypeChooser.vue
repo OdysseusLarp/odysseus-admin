@@ -30,10 +30,17 @@ function onlyUnique(value, index, self) {
 export default {
   data() {
     return {
-      selected: null,
     }
   },
   computed: {
+    selected: {
+      get() {
+        return this.$store.state.dataBlobTypeChooser.selectedType;
+      },
+      set(value) {
+        this.$store.commit('dataBlobTypeChooser_set_selectedType', value)
+      }
+    },
     options() {
       return this.$store.state.dataBlobs.map(e => e.type).sort().filter(onlyUnique)
     }

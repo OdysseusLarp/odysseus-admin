@@ -19,5 +19,8 @@ export interface State {
         username?: string,
         password?: string,
         autoRefresh?: number,
-    }
+    },
+    dataBlobTypeChooser: {
+        selectedType: string | null,
+    },
 }

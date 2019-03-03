@@ -22,7 +22,10 @@ const store = new Vuex.Store<State>({
       username: "",
       password: "",
       autoRefresh: 0,
-    }
+    },
+    dataBlobTypeChooser: {
+      selectedType: null,
+    },
   },
   mutations: {
     setBackend (state, backend) {
@@ -50,7 +53,11 @@ const store = new Vuex.Store<State>({
     },
     setInfo(state, info) {
       state.info = info
-    }
+    },
+
+    dataBlobTypeChooser_set_selectedType(state, value) {
+      state.dataBlobTypeChooser.selectedType = value
+    },
   },
   actions: {
 
