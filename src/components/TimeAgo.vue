@@ -19,14 +19,15 @@ export default {
     props: [ 'time', 'warn' ],
     data () {
         return {
-            id: `span-${Math.random()}`
+            id: `span-${Math.random()}`,
+            now: Date.now(),
+            intervalId: 0,
         }
     },
     computed: {
         formattedTime () {
             const time = this.parseTime(this.$props.time)
-            const now = Date.now()
-            const mins = Math.floor((now - time)/1000/60)
+            const mins = Math.floor((this.now - time)/1000/60)
             if (mins < 1) {
                 return `<1 min ago`
             } else if (mins < 60) {
@@ -44,13 +45,18 @@ export default {
         classes () {
             const time = this.parseTime(this.$props.time)
             const warn = this.$props.warn || 600
-            const now = Date.now()
-            const secs = Math.floor((now - time)/1000)
+            const secs = Math.floor((this.now - time)/1000)
             if (secs > warn) {
                 return "text-danger"
             }
             return ""
         }
+    },
+    mounted: function () {
+        this.intervalId = setInterval(() => this.now = Date.now(), 5000)
+    },
+    beforeDestroy: function () {
+        clearInterval(this.intervalId)
     },
     methods: {
         parseTime (time) {
