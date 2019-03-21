@@ -1,6 +1,7 @@
 <template>
   <div>
     <b-table hover :items="dataBlobs" :fields="fields" v-on:row-clicked="rowClicked" sort-by="id">
+      <template slot="status" slot-scope="data"><span :class="statusStyle(data.item.status)">{{data.item.status}}</span></template>
       <template slot="updated_at" slot-scope="data">
         <time-ago :time="data.item.updated_at" :warn="600"></time-ago>
       </template>
@@ -13,6 +14,18 @@
     <data-blob-editor ref="dataBlobEditor"></data-blob-editor>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.status-good {
+  color: rgb(1,134,76);
+}
+.status-okay {
+  color: rgb(193,130,15);
+}
+.status-bad {
+  color: rgb(184,18,24);
+}
+</style>
 
 
 <script>
@@ -37,6 +50,10 @@ export default {
           sortable: true
         },
         {
+          key: 'status',
+          sortable: true
+        },
+        {
           key: 'updated_at',
           sortable: true
         },
@@ -45,7 +62,7 @@ export default {
           sortable: true
         },
         'value',
-        'config',
+        // 'config',
         {
           key: 'delete',
           label: '',
@@ -76,6 +93,13 @@ export default {
     formatConfig (value) {
       if (value && value.config) {
         return JSON.stringify(value.config, null, 1)
+      }
+    },
+    statusStyle (value) {
+      switch (value) {
+        case 'fixed': return 'status-good'
+        case 'broken': return 'status-bad'
+        case 'calibrating': return 'status-okay'
       }
     },
     rowClicked (item) {
