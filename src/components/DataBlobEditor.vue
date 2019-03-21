@@ -119,10 +119,16 @@ export default {
       try {
         const value = JSON.parse(this.json)
         const preset = this.originalData["presets"][presetKey]
+        const note = preset['note'];
         for (const key of Object.keys(preset)) {
-          value[key] = preset[key]
+          if (key !== 'note') {
+            value[key] = preset[key]
+          }
         }
         this.json = JSON.stringify(value, null, 4)
+        if (note) {
+          alert(note);
+        }
       } catch (e) {
         console.log("Error applying preset", e)
       }
