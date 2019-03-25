@@ -20,6 +20,7 @@
             <b-button variant="danger" v-on:click="updateVoteStatus(vote.id, 'REJECTED')">Reject</b-button>
         </b-card>
     </div>
+    <infoboard-editor ref="infoboardEditor"></infoboard-editor>
   </div>
 </template>
 
@@ -37,9 +38,12 @@
 
 <script>
 import axiox from 'axios'
+import InfoboardEditor from '@/components/InfoboardEditor.vue'
 
 export default {
-  components: {},
+  components: {
+    InfoboardEditor,
+  },
   data () {
     return {
       errors: [],

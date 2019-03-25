@@ -3,7 +3,7 @@
     <b-container fluid class="my-4">
       <h1>Infoboard</h1>
     </b-container>
-    <Social />
+    <Infoboard />
   </div>
 </template>
 
