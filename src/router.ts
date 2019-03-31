@@ -4,6 +4,8 @@ import Home from './views/Home.vue'
 import DataBlobs from './views/DataBlobs.vue'
 import Tasks from './views/Tasks.vue'
 import Social from './views/Social.vue';
+import ShipLog from './views/ShipLog.vue';
+import Fleet from './views/Fleet.vue';
 
 Vue.use(VueRouter)
 
@@ -28,6 +30,16 @@ export default new VueRouter({
       path: '/social',
       name: 'social',
       component: Social
+    },
+    {
+      path: '/fleet',
+      name: 'fleet',
+      component: Fleet
+    },
+    {
+      path: '/ship-log',
+      name: 'ship-log',
+      component: ShipLog
     },
   ]
 })
