@@ -1,40 +1,17 @@
 <template>
-  <div class="wrapper">
-    <b-container fluid v-for="(error, i) in errors" :key="error">
-      <b-alert variant="danger" show
-        dismissible
-        @dismissed="removeError(i)"
-        :hover="true"><strong>Error: </strong>{{ error }}</b-alert>
-    </b-container>
-    <div v-if="!!entries.length">
-        <h2>Infoboard Entries</h2>
-        <b-card class="card" v-for="entry in entries"
-            :title="entry.title"
-            <p class="card-text">{{ entry.body }}</p>
-            <p class="card-text">
-                <ul>
-                    <li>Is public: {{ entry.enabled }}</li>
-                </ul>
-            </p>
-            <b-button variant="success" v-on:click="updateVoteStatus(vote.id, 'APPROVED')">Approve</b-button>
-            <b-button variant="danger" v-on:click="updateVoteStatus(vote.id, 'REJECTED')">Reject</b-button>
-        </b-card>
-    </div>
+  <div>
+    <b-table hover :items="infoboardEntries" :fields="fields" v-on:row-clicked="rowClicked" sort-by="id">
+      <template slot="title" slot-scope="data">{{data.item.title}}</template>
+      <template slot="updated_at" slot-scope="data">
+        <time-ago :time="data.item.updated_at" :warn="600"></time-ago>
+      </template>
+      <template slot="delete" slot-scope="data">
+        <font-awesome-icon @click.stop="del(data.item)" icon="trash-alt" />
+      </template>
+    </b-table>
     <infoboard-editor ref="infoboardEditor"></infoboard-editor>
   </div>
 </template>
-
-<style lang="scss">
-    button {
-        margin-right: 15px;
-    }
-    .wrapper {
-        padding: 15px;
-    }
-    .card {
-        margin: 15px;
-    }
-</style>
 
 <script>
 import axiox from 'axios'
@@ -46,32 +23,46 @@ export default {
   },
   data () {
     return {
-      errors: [],
-      isLoading: true,
-      entries: [],
+      fields: [
+        {
+          key: 'id',
+          sortable: true
+        },
+        {
+          key: 'title',
+          sortable: true
+        },
+        {
+          key: 'updated_at',
+          sortable: true
+        },
+        {
+          key: 'priority',
+          sortable: true
+        },
+      ],
     }
   },
 
   created () {
     // fetch the data when the view is created and the data is already being observed
     this.fetchData();
-    if (this.$store.state.backend.autoRefresh > 0.5) {
-      this.timer = setInterval(this.fetchData, this.$store.state.backend.autoRefresh * 1000);
-    }
   },
   beforeDestroy() {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = undefined;
     }
- },
+  },
+  computed: {
+    infoboardEntries() {
+      return this.fetchData();
+    }
+  },
   methods: {
     fetchData() {
         this.fetchEntries();
-        console.log(!!this.entries.length, !!this.pendingPosts.length);
-    },
-    removeError(i) {
-        this.errors.splice(i , 1);
+        console.log(!!this.entries.length);
     },
     async fetchEntries() {
         this.isLoading = true;
@@ -84,30 +75,8 @@ export default {
         });
         this.isLoading = false;
     },
-    updateVoteStatus(id, status) {
-        const is_active = status === 'APPROVED';
-        axios({
-            url: `/vote/${id}`,
-            baseURL: this.$store.state.backend.uri,
-            method: 'put',
-            data: { status, is_active }
-        }).then(r => {
-            this.fetchData();
-        }).catch(error => {
-            this.errors.push("" + error);
-        });
-    },
-    updatePostStatus(id, status) {
-        axios({
-            url: '/post',
-            baseURL: this.$store.state.backend.uri,
-            method: 'put',
-            data: { id, status }
-        }).then(r => {
-            this.fetchData();
-        }).catch(error => {
-            this.errors.push("" + error);
-        });
+    rowClicked (item) {
+      this.$refs.infoboardEditor.show(item)
     }
   }
 }
