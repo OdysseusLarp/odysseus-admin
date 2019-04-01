@@ -6,7 +6,19 @@
         @dismissed="removeError(i)"
         :hover="true"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
-    <b-button size="sm" class="my-2 my-sm-0" v-b-modal.new-infoboard-entry-modal>Add new infoboard entry</b-button>
+    <b-form>
+      <b-form-group label="Current Priority" label-for="currentPriority">
+        <b-form-select id="currentPriority"
+                      type="text"
+                      v-model="currentPriority"
+                      :options="infoboardPriorities"
+                      required
+                      :value="currentPriority">
+        </b-form-select>
+      </b-form-group>
+      <b-button size="sm" class="my-2 my-sm-0" @click="updatePriority">Change priority</b-button>
+    </b-form>
+    <b-button size="sm" class="my-2 my-sm-0" v-b-modal.infoboard-entry-modal entry="'newInfoboard'" @click="sendInfo(newInfoboard)">Add new infoboard entry</b-button>
     <div v-if="!!infoboards.length">
       <b-card :class="'card'" v-for="(infoboard,i) in infoboards"
           :title="infoboard.title"
@@ -15,31 +27,39 @@
             {{ infoboard.body }}
           </p>
 	  <p>Priority: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
+	  <b-button size="sm" class="my-2 my-sm-0" v-b-modal.infoboard-entry-modal entry="'infoboard'" @click="sendInfo(infoboard)">Edit infoboard entry</b-button>
           <b-button variant="danger" v-on:click="deleteInfoboardEntry(infoboard.id)">Delete entry</b-button>
       </b-card>
     </div>
   <div>
-    <b-modal id="new-infoboard-entry-modal" title="New infoboard entry" @ok="handleOk">
+    <b-modal id="infoboard-entry-modal" title="Infoboard entry" @ok="handleOk">
       <b-form>
-        <b-form-group label="Infoboard priority" label-for="infoboardPriority">
+        <b-form-group label="Enabled" label-for="infoboardEnabled">
+	  <b-form-checkbox id="infoboardEnabled"
+	                v-model="newInfoboardEnabled"
+			:value="selectedEntry.enabled"
+			unchecked-value="false">
+          </b-form-checkbox>
+        </b-form-group>
+        <b-form-group label="Priority" label-for="infoboardPriority">
           <b-form-select id="infoboardPriority"
                         type="text"
                         v-model="newInfoboardPriority"
                         :options="infoboardPriorities"
                         required
-                        placeholder="">
+                        :value="selectedEntry.priority">
           </b-form-select>
         </b-form-group>
-        <b-form-group label="Infoboard title"
+        <b-form-group label="Title"
                       label-for="infoboardTitle">
           <b-form-input id="infoboardTitle"
                         type="text"
                         v-model="newInfoboardTitle"
                         required
-                        placeholder="Infoboard title...">
+                        :value="selectedEntry.title">
           </b-form-input>
         </b-form-group>
-        <b-form-group label="Infoboard body"
+        <b-form-group label="Body"
                       label-for="infoboardBody">
           <b-form-textarea id="infoboardBody"
                         type="text"
@@ -47,7 +67,8 @@
                         required
                         rows="3"
                         max-rows="6"
-                        placeholder="Infoboard body...">
+			:value="selectedEntry.body">
+			{{ selectedEntry.body }}
           </b-form-textarea>
         </b-form-group>
       </b-form>
@@ -91,10 +112,13 @@ export default {
       isLoading: true,
       infoboards: [],
       infoboardPriorities: [1,2,3],
+      currentPriority: 0,
+      newInfoboard: { priority: 1, title: "", body: "", enabled: true },
       newInfoboardPriority: 1,
       newInfoboardTitle: "",
       newInfoboardBody: "",
       newInfoboardEnabled: true,
+      selectedEntry: { priority: 1, title: "", body: "", enabled: true }
     }
   },
 
@@ -126,6 +150,7 @@ export default {
 	  this.newInfoboardPriority = 1;
 	  this.newInfoboardTitle = "";
 	  this.newInfoboardBody = "";
+	  this.selectedEntry = this.newInfoboard;
           this.fetchInfoboardEntries();
         }).catch(err => {
           console.log('error adding infoboard entry', err);
@@ -143,6 +168,15 @@ export default {
         });
       this.isLoading = false;
     },
+    async updatePriority() {
+      this.isLoading = true;
+      await axios.put(`/infoboard/priority`, {priority: this.currentPriority}, { baseUrl: this.$store.state.backend.uri })
+        .catch(err => {
+          this.errors.push(err.message);
+          console.log('error updating priority', err);
+        });
+      this.isLoading = false;
+    },
     fetchData() {
         this.fetchInfoboardEntries();
     },
@@ -153,12 +187,16 @@ export default {
         this.isLoading = true;
         await axios.get("/infoboard", { baseURL: this.$store.state.backend.uri })
         .then(response => {
-          this.infoboards = (response.data || []).sort((a, b) => a.created_at < b.created_at ? 1 : -1);
+          this.infoboards = (response.data.infoboards || []).sort((a, b) => a.created_at < b.created_at ? 1 : -1);
+	  this.currentPriority = (response.data.priority.priority || 0)
         })
         .catch(error => {
           this.errors.push("" + error);
         });
         this.isLoading = false;
+    },
+    sendInfo(entry) {
+        this.selectedEntry = entry;
     }
   }
 }
