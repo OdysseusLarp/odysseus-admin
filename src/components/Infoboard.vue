@@ -14,7 +14,7 @@
           <p class="card-text">
             {{ infoboard.body }}
           </p>
-	  <p>Priority: {{ infoboard.priority }}</p>
+	  <p>Priority: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
           <b-button variant="danger" v-on:click="deleteInfoboardEntry(infoboard.id)">Delete entry</b-button>
       </b-card>
     </div>
@@ -32,12 +32,12 @@
         </b-form-group>
         <b-form-group label="Infoboard title"
                       label-for="infoboardTitle">
-          <b-form-text id="infoboardTitle"
+          <b-form-input id="infoboardTitle"
                         type="text"
                         v-model="newInfoboardTitle"
                         required
                         placeholder="Infoboard title...">
-          </b-form-text>
+          </b-form-input>
         </b-form-group>
         <b-form-group label="Infoboard body"
                       label-for="infoboardBody">
@@ -94,6 +94,7 @@ export default {
       newInfoboardPriority: 1,
       newInfoboardTitle: "",
       newInfoboardBody: "",
+      newInfoboardEnabled: true,
     }
   },
 
@@ -112,15 +113,15 @@ export default {
  },
   methods: {
     handleOk() {
-      this.addInfoboardEntry(this.newInfoboardPriority, this.newInfoboardTitle, this.newInfoboardBody);
+      this.addInfoboardEntry(this.newInfoboardPriority, this.newInfoboardTitle, this.newInfoboardBody, this.newInfoboardEnabled);
     },
-    async addInfoboardEntry(priority, title, body) {
+    async addInfoboardEntry(priority, title, body, enabled) {
       if (!priority || !title ||!body) {
-        this.errors.put('Priority, title or body was not provided');
+        this.errors.push('Priority, title or body was not provided');
         return;
       }
       this.isLoading = true;
-      await axios.put("/infoboard", { priority, title, body }, { baseURL: this.$store.state.backend.uri })
+      await axios.put("/infoboard", { priority, title, body, enabled }, { baseURL: this.$store.state.backend.uri })
         .then(res => {
 	  this.newInfoboardPriority = 1;
 	  this.newInfoboardTitle = "";
