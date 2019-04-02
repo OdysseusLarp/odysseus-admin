@@ -35,40 +35,36 @@
     <b-modal id="infoboard-entry-modal" title="Infoboard entry" @ok="handleOk">
       <b-form>
         <b-form-group label="Enabled" label-for="infoboardEnabled">
+        <input name="selectedEntry.id" :value="selectedEntry.id" type="hidden" />
 	  <b-form-checkbox id="infoboardEnabled"
-	                v-model="newInfoboardEnabled"
-			:value="selectedEntry.enabled"
+	                v-model="selectedEntry.enabled"
 			unchecked-value="false">
           </b-form-checkbox>
         </b-form-group>
         <b-form-group label="Priority" label-for="infoboardPriority">
           <b-form-select id="infoboardPriority"
                         type="text"
-                        v-model="newInfoboardPriority"
+                        v-model="selectedEntry.priority"
                         :options="infoboardPriorities"
-                        required
-                        :value="selectedEntry.priority">
+                        required>
           </b-form-select>
         </b-form-group>
         <b-form-group label="Title"
                       label-for="infoboardTitle">
           <b-form-input id="infoboardTitle"
                         type="text"
-                        v-model="newInfoboardTitle"
-                        required
-                        :value="selectedEntry.title">
+                        v-model="selectedEntry.title"
+                        required>
           </b-form-input>
         </b-form-group>
         <b-form-group label="Body"
                       label-for="infoboardBody">
           <b-form-textarea id="infoboardBody"
                         type="text"
-                        v-model="newInfoboardBody"
+                        v-model="selectedEntry.body"
                         required
                         rows="3"
-                        max-rows="6"
-			:value="selectedEntry.body">
-			{{ selectedEntry.body }}
+                        max-rows="6">
           </b-form-textarea>
         </b-form-group>
       </b-form>
@@ -114,10 +110,6 @@ export default {
       infoboardPriorities: [1,2,3],
       currentPriority: 0,
       newInfoboard: { priority: 1, title: "", body: "", enabled: true },
-      newInfoboardPriority: 1,
-      newInfoboardTitle: "",
-      newInfoboardBody: "",
-      newInfoboardEnabled: true,
       selectedEntry: { priority: 1, title: "", body: "", enabled: true }
     }
   },
@@ -137,15 +129,19 @@ export default {
  },
   methods: {
     handleOk() {
-      this.addInfoboardEntry(this.newInfoboardPriority, this.newInfoboardTitle, this.newInfoboardBody, this.newInfoboardEnabled);
+      this.addInfoboardEntry(this.selectedEntry);
     },
-    async addInfoboardEntry(priority, title, body, enabled) {
-      if (!priority || !title ||!body) {
+    async addInfoboardEntry(entry) {
+      if (!entry.priority || !entry.title ||!entry.body) {
         this.errors.push('Priority, title or body was not provided');
         return;
       }
       this.isLoading = true;
-      await axios.put("/infoboard", { priority, title, body, enabled }, { baseURL: this.$store.state.backend.uri })
+      var url = "/infoboard";
+      if(entry.id) {
+        url = `/infoboard/${entry.id}`
+      }
+      await axios.put(url, entry, { baseURL: this.$store.state.backend.uri })
         .then(res => {
 	  this.newInfoboardPriority = 1;
 	  this.newInfoboardTitle = "";
