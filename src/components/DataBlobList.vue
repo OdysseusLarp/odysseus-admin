@@ -87,7 +87,7 @@ export default {
         delete copy["config"]
         delete copy["presets"]
         delete copy["version"]
-        return JSON.stringify(copy, null, 1)
+        return JSON.stringify(copy, (key, val) => val.toFixed ? Number(val.toFixed(2)) : val, 1)
       }
     },
     formatConfig (value) {
