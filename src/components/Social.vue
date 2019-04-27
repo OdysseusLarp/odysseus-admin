@@ -43,6 +43,14 @@
             <b-button variant="danger" v-on:click="updatePostStatus(post.id, 'REJECTED')">Reject</b-button>
         </b-card>
     </div>
+    <div v-if="!!unreadMessages.length">
+    <h2>Unread messages</h2>
+      <ul>
+        <li v-for="unreadMessageSummary in unreadMessages">
+          {{ unreadMessageSummary.full_name }} ({{ unreadMessageSummary.unread_count }})
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -70,10 +78,10 @@ export default {
     return {
       errors: [],
       isLoading: true,
-      isPostsFetching: false,
-      isVotesFetching: false,
+      pendingRequests: new Set([]),
       pendingVotes: [],
-      pendingPosts: []
+      pendingPosts: [],
+      unreadMessages: []
     }
   },
 
@@ -100,38 +108,60 @@ export default {
     fetchData() {
         this.fetchPendingVotes();
         this.fetchPendingsPosts();
-        console.log(!!this.pendingVotes.length, !!this.pendingPosts.length);
+        this.fetchUnreadMessages();
     },
     removeError(i) {
         this.errors.splice(i , 1);
     },
     async fetchPendingVotes() {
-        this.isFetchingVotes = true;
-        await axios.get("/vote?status=PENDING", { baseURL: this.$store.state.backend.uri })
+        this.pendingRequests.add('votes');
+        await axios.get('/vote?status=PENDING', { baseURL: this.$store.state.backend.uri })
         .then(response => {
           this.pendingVotes = response.data;
         })
         .catch(error => {
           this.errors.push("" + error);
         });
-        this.isFetchingVotes = false;
+        this.pendingRequests.delete('votes');
         this.updateIsLoading();
     },
     async fetchPendingsPosts() {
-        this.isFetchingPosts = true;
+        this.pendingRequests.add('posts');
         this.updateIsLoading();
-        await axios.get("/post?status=PENDING", { baseURL: this.$store.state.backend.uri })
+        await axios.get('/post?status=PENDING', { baseURL: this.$store.state.backend.uri })
         .then(response => {
           this.pendingPosts = response.data;
         })
         .catch(error => {
           this.errors.push("" + error);
         });
-        this.isFetchingPosts = false;
+        this.pendingRequests.delete('posts');
         this.updateIsLoading();
     },
+    async fetchUnreadMessages() {
+        this.pendingRequests.add('messages');
+        this.updateIsLoading();
+        await axios.get('/messaging/unread', { baseURL: this.$store.state.backend.uri })
+        .then(response => this.parseUnreadMessages(response.data))
+        .catch(error => {
+          this.errors.push("" + error);
+        });
+        this.pendingRequests.delete('messages');
+        this.updateIsLoading();
+    },
+    parseUnreadMessages(messages) {
+      const unreadSummary = messages.reduce((prev, cur) => {
+        const obj = prev[cur.target_person] || { full_name: cur.receiver.full_name, unread_count: 0 };
+        obj.unread_count = obj.unread_count + 1;
+        prev[cur.target_person] = obj;
+        return prev;
+      }, {});
+      this.unreadMessages = Object.keys(unreadSummary)
+        .map(key => unreadSummary[key])
+        .sort((a, b) => a.unread_count > b.unread_count ? -1 : 1);
+    },
     updateIsLoading() {
-        this.isLoading = this.isFetchingVotes || this.isFetchingPosts;
+        this.isLoading = this.pendingRequests.size > 0;
     },
     updateVoteStatus(id, status) {
         const is_active = status === 'APPROVED';
