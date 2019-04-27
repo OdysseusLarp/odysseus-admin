@@ -9,7 +9,6 @@
       <b-alert variant="info" v-if="connectionStatus.isEmulated" show dismissible :hover="true">
           Empty Epsilon integration is currently running in emulated mode! Set connection details in backend to connect to a real server.
         </b-alert>
-        <p class="red" v-if="!connectionStatus.isConnectionHealthy">Error: {{ connectionStatus.lastErrorMessage }}</p>
     <b-container fluid>
     <b-row>
         <b-col>
@@ -22,6 +21,7 @@
                 <span class="green" v-if="connectionStatus.isConnectionHealthy">HEALTHY</span>
                 <span class="red" v-else>UNHEALTHY</span>
                 </h2>
+                <p class="red" v-if="!connectionStatus.isConnectionHealthy">Error: {{ connectionStatus.lastErrorMessage }}</p>
                 <hr>
             </div>
             <div>
@@ -31,14 +31,15 @@
                 </h2>
                 <b-button variant="success" @click="toggleSynchronization(true)" v-if="!shipMetadata.ee_sync_enabled">Enable</b-button>
                 <b-button variant="danger" @click="toggleSynchronization(false)" v-else>Disable</b-button>
+                <b-button variant="primary" @click="pushFullGameState()" v-if="!shipMetadata.ee_sync_enabled">Push current state to EE</b-button>
                 <hr>
             </div>
             <div>
-                <h2>Ship alert state: <span v-if="gameState.general.alertLevel === 'NORMAL'" class="green">NORMAL</span>
+                <h2>Ship alert state: <span v-if="gameState.general.alertLevel === 'Normal'" class="green">NORMAL</span>
                 <span v-else-if="gameState.general.alertLevel === 'YELLOW ALERT'" class="yellow">YELLOW ALERT</span>
                 <span v-else-if="gameState.general.alertLevel === 'RED ALERT'" class="red">RED ALERT</span>
                 <span v-else class="red">UNKNOWN ALERT STATE</span></h2>
-                <b-button variant="success" @click="setAlertState('normal')">Normal<span v-if="gameState.general.alertLevel === 'NORMAL'"> (active)</span></b-button>
+                <b-button variant="success" @click="setAlertState('normal')">Normal<span v-if="gameState.general.alertLevel === 'Normal'"> (active)</span></b-button>
                 <b-button variant="warning" @click="setAlertState('yellow')">Yellow alert<span v-if="gameState.general.alertLevel === 'YELLOW ALERT'"> (active)</span></b-button>
                 <b-button variant="danger" @click="setAlertState('red')">Red alert<span v-if="gameState.general.alertLevel === 'RED ALERT'"> (active)</span></b-button>
                 <hr>
@@ -57,6 +58,7 @@
                         <b-form-select v-model="selectedTarget" id="selected-target" :options="selectedType === 'systems' ? systems : weapons"></b-form-select>
                     </b-form-group>
                     <b-form-group
+                        v-if="selectedType === 'systems'"
                         label="Value type"
                         label-for="selected-value-type">
                         <b-form-select v-model="selectedValueType" id="selected-value-type" :options="selectedType === 'systems' ? systemValueTypes : weaponValueTypes"></b-form-select>
@@ -140,7 +142,7 @@ const systemValueTypes = ['health', 'heat'];
 const weaponValueTypes = ['count'];
 
 const alertStates = new Map([
-    ['normal', 'NORMAL'],
+    ['normal', 'Normal'],
     ['yellow', 'YELLOW ALERT'],
     ['red', 'RED ALERT']
 ]);
@@ -155,6 +157,7 @@ export default {
       pendingRequests: new Set([]),
       isAlertLevelChangePending: false,
       isSynchronizationChangePending: false,
+      isPushGameStatePending: false,
       isLoading: true,
       types,
       systems,
@@ -240,6 +243,20 @@ export default {
             this.errors.push("" + error);
             this.isSynchronizationChangePending = false;
         });
+    },
+    async pushFullGameState(value) {
+        if (this.isPushGameStatePending || this.shipMetadata.ee_sync_enabled) {
+            return;
+        }
+        this.isPushGameStatePending = true;
+        await axios({
+            url: `/state/full-push`,
+            baseURL: this.$store.state.backend.uri,
+            method: 'post'
+        }).catch(error => {
+            this.errors.push("" + error);
+        });
+        this.isPushGameStatePending = false;
     }
   }
 }
