@@ -14,6 +14,7 @@
     <div v-if="!!pendingVotes.length">
         <h2>Pending new votes</h2>
         <b-card class="card" v-for="vote in pendingVotes"
+            v-bind:key="vote.id"
             :title="vote.title"
             :sub-title="formatVoteSubtitle(vote)">
             <p class="card-text">{{ vote.description }}</p>
@@ -32,9 +33,12 @@
     <div v-if="!!pendingPosts.length">
         <h2>Pending new posts</h2>
         <b-card class="card" v-for="post in pendingPosts"
+            v-bind:key="post.id"
             :title="post.title"
             :sub-title="formatPostSubtitle(post)">
-            <p class="card-text">{{ post.body }}</p>
+            <p class="card-text">
+              <vue-markdown :source="post.body"></vue-markdown>
+            </p>
             <b-button variant="success" v-on:click="updatePostStatus(post.id, 'APPROVED')">Approve</b-button>
             <b-button variant="danger" v-on:click="updatePostStatus(post.id, 'REJECTED')">Reject</b-button>
         </b-card>
@@ -56,9 +60,12 @@
 
 <script>
 import axiox from 'axios'
+import VueMarkdown from 'vue-markdown';
 
 export default {
-  components: {},
+  components: {
+    VueMarkdown,
+  },
   data () {
     return {
       errors: [],
