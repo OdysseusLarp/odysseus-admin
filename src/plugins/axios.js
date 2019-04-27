@@ -1,8 +1,8 @@
 "use strict";
 
-import Vue from 'vue';
+import Vue from "vue";
 import axios from "axios";
-import store from '../store';
+import store from "../store";
 
 // Full config:  https://github.com/axios/axios#request-config
 // axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
@@ -53,14 +53,20 @@ Plugin.install = function(Vue, options) {
       get() {
         return _axios;
       }
-    },
+    }
   });
 };
 
-Vue.use(Plugin)
+Vue.use(Plugin);
 
 function updateBackend(backend) {
-  console.log("Setting backend URI to '" + backend.uri + "' " + (backend.username ? "with":"without") + " credentials");
+  console.log(
+    "Setting backend URI to '" +
+      backend.uri +
+      "' " +
+      (backend.username ? "with" : "without") +
+      " credentials"
+  );
   axios.defaults.baseURL = backend.uri;
   if (backend.username) {
     axios.withCredentials = true;

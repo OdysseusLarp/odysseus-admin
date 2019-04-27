@@ -8,13 +8,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import EmptyEpsilon from '@/components/EmptyEpsilon.vue';
+import { mapState } from "vuex";
+import EmptyEpsilon from "@/components/EmptyEpsilon.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { EmptyEpsilon }
-}
+  components: { EmptyEpsilon },
+  computed: mapState(["backendUri"])
+};
 </script>

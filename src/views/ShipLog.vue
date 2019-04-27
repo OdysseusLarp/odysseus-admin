@@ -8,13 +8,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import ShipLog from '@/components/ShipLog.vue';
+import { mapState } from "vuex";
+import ShipLog from "@/components/ShipLog.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { ShipLog }
-}
+  components: { ShipLog },
+  computed: mapState(["backendUri"])
+};
 </script>

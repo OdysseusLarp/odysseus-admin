@@ -8,13 +8,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import Infoboard from '@/components/Infoboard.vue';
+import { mapState } from "vuex";
+import Infoboard from "@/components/Infoboard.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { Infoboard }
-}
+  components: { Infoboard },
+  computed: mapState(["backendUri"])
+};
 </script>

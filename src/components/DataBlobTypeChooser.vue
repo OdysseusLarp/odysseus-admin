@@ -8,7 +8,7 @@
       </b-form-select>
     </b-container>
 
-    <DataBlobList :type="selected" v-if="selected"></DataBlobList>
+    <DataBlobList v-if="selected" :type="selected"></DataBlobList>
     <data-blob-editor ref="dataBlobEditor"></data-blob-editor>
 
     <b-container fluid>
@@ -19,18 +19,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import DataBlobList from '@/components/DataBlobList.vue'
-import DataBlobEditor from '@/components/DataBlobEditor.vue'
+import { mapState } from "vuex";
+import DataBlobList from "@/components/DataBlobList.vue";
+import DataBlobEditor from "@/components/DataBlobEditor.vue";
 
-function onlyUnique(value, index, self) { 
-    return self.indexOf(value) === index;
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
 }
 
 export default {
+  components: { DataBlobList, DataBlobEditor },
   data() {
-    return {
-    }
+    return {};
   },
   computed: {
     selected: {
@@ -38,18 +38,20 @@ export default {
         return this.$store.state.dataBlobTypeChooser.selectedType;
       },
       set(value) {
-        this.$store.commit('dataBlobTypeChooser_set_selectedType', value)
+        this.$store.commit("dataBlobTypeChooser_set_selectedType", value);
       }
     },
     options() {
-      return this.$store.state.dataBlobs.map(e => e.type).sort().filter(onlyUnique)
+      return this.$store.state.dataBlobs
+        .map(e => e.type)
+        .sort()
+        .filter(onlyUnique);
     }
   },
-  components: { DataBlobList, DataBlobEditor },
   methods: {
-    newDataBlob () {
-      this.$refs.dataBlobEditor.show({ type: this.selected })
-    },
+    newDataBlob() {
+      this.$refs.dataBlobEditor.show({ type: this.selected });
+    }
   }
-}
+};
 </script>

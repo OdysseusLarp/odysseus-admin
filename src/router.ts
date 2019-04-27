@@ -1,57 +1,57 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from './views/Home.vue'
-import DataBlobs from './views/DataBlobs.vue'
-import Tasks from './views/Tasks.vue'
-import Social from './views/Social.vue';
-import ShipLog from './views/ShipLog.vue';
-import Fleet from './views/Fleet.vue';
-import Infoboard from './views/Infoboard.vue';
-import EmptyEpsilon from './views/EmptyEpsilon.vue';
+import Vue from "vue";
+import VueRouter from "vue-router";
+import Home from "./views/Home.vue";
+import DataBlobs from "./views/DataBlobs.vue";
+import Tasks from "./views/Tasks.vue";
+import Social from "./views/Social.vue";
+import ShipLog from "./views/ShipLog.vue";
+import Fleet from "./views/Fleet.vue";
+import Infoboard from "./views/Infoboard.vue";
+import EmptyEpsilon from "./views/EmptyEpsilon.vue";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 export default new VueRouter({
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: Home
     },
     {
-      path: '/data',
-      name: 'data',
+      path: "/data",
+      name: "data",
       component: DataBlobs
     },
     {
-      path: '/tasks',
-      name: 'tasks',
+      path: "/tasks",
+      name: "tasks",
       component: Tasks
     },
     {
-      path: '/social',
-      name: 'social',
+      path: "/social",
+      name: "social",
       component: Social
     },
     {
-      path: '/fleet',
-      name: 'fleet',
+      path: "/fleet",
+      name: "fleet",
       component: Fleet
     },
     {
-      path: '/ship-log',
-      name: 'ship-log',
+      path: "/ship-log",
+      name: "ship-log",
       component: ShipLog
     },
     {
-      path: '/infoboard',
-      name: 'infoboard',
+      path: "/infoboard",
+      name: "infoboard",
       component: Infoboard
     },
     {
-      path: '/emptyepsilon',
-      name: 'emptyepsilon',
+      path: "/emptyepsilon",
+      name: "emptyepsilon",
       component: EmptyEpsilon
-    },
+    }
   ]
-})
+});

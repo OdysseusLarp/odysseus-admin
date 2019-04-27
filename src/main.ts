@@ -1,22 +1,21 @@
-import Vue from 'vue'
-import './plugins/bootstrap-vue'
-import './plugins/axios'
-import './plugins/vue-fontawesome'
-import App from './App.vue'
-import router from './router'
-import store from './store'
-import { initDataBlobSync } from './store/DataBlobSync'
+import Vue from "vue";
+import "./plugins/bootstrap-vue";
+import "./plugins/axios";
+import "./plugins/vue-fontawesome";
+import App from "./App.vue";
+import router from "./router";
+import store from "./store";
+import { initDataBlobSync } from "./store/DataBlobSync";
 
-import Notifications from 'vue-notification'
-Vue.use(Notifications)
+import Notifications from "vue-notification";
+Vue.use(Notifications);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
-initDataBlobSync()
-
+initDataBlobSync();
 
 new Vue({
   router,
   store,
   render: h => h(App)
-}).$mount('#app')
+}).$mount("#app");

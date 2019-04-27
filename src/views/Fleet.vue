@@ -8,13 +8,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import Fleet from '@/components/Fleet.vue';
+import { mapState } from "vuex";
+import Fleet from "@/components/Fleet.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { Fleet }
-}
+  components: { Fleet },
+  computed: mapState(["backendUri"])
+};
 </script>

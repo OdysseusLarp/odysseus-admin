@@ -1,13 +1,13 @@
 <template>
   <div class="wrapper">
-    <b-container fluid v-for="(error, i) in errors" :key="error">
+    <b-container v-for="(error, i) in errors" :key="error" fluid>
       <b-alert variant="danger" show
         dismissible
-        @dismissed="removeError(i)"
-        :hover="true"><strong>Error: </strong>{{ error }}</b-alert>
+        :hover="true"
+        @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
     <h2>Odysseus ship info</h2>
-    <b-card class="card" v-if="odysseus">
+    <b-card v-if="odysseus" class="card">
         <div class="card-text">
           <div>Current position: {{ odysseus.position.name }}</div>
           <div>Probe count: {{ odysseus.metadata.probe_count }}</div>
@@ -17,7 +17,8 @@
     </b-card>
     <h2>All ships</h2>
     <div v-if="!!fleet.length">
-      <b-card class="card" v-for="ship in fleet"
+      <b-card v-for="ship in fleet" :key="ship.id"
+          class="card"
           :title="ship.name">
           <p class="card-text">
             <pre>{{ JSON.stringify(ship) }}</pre>
@@ -28,36 +29,39 @@
 </template>
 
 <style lang="scss">
-    button {
-        margin-right: 15px;
-    }
-    .wrapper {
-        padding: 15px;
-    }
-    .card {
-        margin: 15px;
-    }
+button {
+  margin-right: 15px;
+}
+.wrapper {
+  padding: 15px;
+}
+.card {
+  margin: 15px;
+}
 </style>
 
 <script>
-import axiox from 'axios'
+import axiox from "axios";
 
 export default {
   components: {},
-  data () {
+  data() {
     return {
       errors: [],
       isLoading: true,
       fleet: [],
-      odysseus: null,
-    }
+      odysseus: null
+    };
   },
 
-  created () {
+  created() {
     // fetch the data when the view is created and the data is already being observed
     this.fetchData();
     if (this.$store.state.backend.autoRefresh > 0.5) {
-      this.timer = setInterval(this.fetchData, this.$store.state.backend.autoRefresh * 1000);
+      this.timer = setInterval(
+        this.fetchData,
+        this.$store.state.backend.autoRefresh * 1000
+      );
     }
   },
   beforeDestroy() {
@@ -65,29 +69,32 @@ export default {
       clearInterval(this.timer);
       this.timer = undefined;
     }
- },
+  },
   methods: {
     handleOk() {
       this.addLogEntry(this.newLogType, this.newLogMessage);
     },
     fetchData() {
-        this.fetchFleet();
+      this.fetchFleet();
     },
     removeError(i) {
-        this.errors.splice(i , 1);
+      this.errors.splice(i, 1);
     },
     async fetchFleet() {
-        this.isLoading = true;
-        await axios.get("/fleet", { baseURL: this.$store.state.backend.uri })
+      this.isLoading = true;
+      await axios
+        .get("/fleet", { baseURL: this.$store.state.backend.uri })
         .then(response => {
-          this.fleet = (response.data || []).sort((a, b) => a.id === 'odysseus' ? -1 : 1);
-          this.odysseus = this.fleet.find(ship => ship.id === 'odysseus');
+          this.fleet = (response.data || []).sort(
+            (a, b) => (a.id === "odysseus" ? -1 : 1)
+          );
+          this.odysseus = this.fleet.find(ship => ship.id === "odysseus");
         })
         .catch(error => {
           this.errors.push("" + error);
         });
-        this.isLoading = false;
+      this.isLoading = false;
     }
   }
-}
+};
 </script>

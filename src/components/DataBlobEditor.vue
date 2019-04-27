@@ -5,17 +5,17 @@
         
         <b-form-group label="Data type:"
                       label-for="type">
-          <b-input type="text" v-model="type" id="type" required :state="typeState"></b-input>
+          <b-input id="type" v-model="type" type="text" required :state="typeState"></b-input>
         </b-form-group>
 
         <b-form-group label="Data ID:"
                       label-for="id">
-          <b-input type="text" v-model="id" id="id" required :state="idState"></b-input>
+          <b-input id="id" v-model="id" type="text" required :state="idState"></b-input>
         </b-form-group>
 
         <b-form-group label="Content:"
                       label-for="json">
-          <b-form-textarea v-model="json" id="json" :rows="10" :state="jsonState"></b-form-textarea>
+          <b-form-textarea id="json" v-model="json" :rows="10" :state="jsonState"></b-form-textarea>
         </b-form-group>
 
         <small v-if="patch">Provided fields will be updated, other fields will keep existing values.
@@ -23,7 +23,7 @@
         </small>
         <small v-else>Content will overwrite the entire data store.</small>
 
-        <b-dropdown size="sm" text="Apply preset" v-if="presets">
+        <b-dropdown v-if="presets" size="sm" text="Apply preset">
           <b-dropdown-item
             v-for="preset in Object.keys(presets)"
             :key="preset"
@@ -39,10 +39,10 @@
 
 
 <script>
-import axios from 'axios'
+import axios from "axios";
 
 export default {
-  data () {
+  data() {
     return {
       originalData: {},
       existing: false,
@@ -53,114 +53,114 @@ export default {
       json: "",
       jsonState: null,
       presets: undefined,
-      patch: true,
-    }
+      patch: true
+    };
   },
 
   watch: {
-    id () {
+    id() {
       this.validateId();
     },
     type() {
       this.validateType();
     },
-    json () {
+    json() {
       this.validateJson();
-    }, 
+    }
   },
 
   methods: {
-    show (data) {
-      console.log("Edit data blob:", data)
-      this.originalData = data
-      this.existing = !!data.id
-      this.id = data.id || ""
-      this.type = data.type || ""
-      this.json = JSON.stringify(this.filterData(data), null, 4)
-      this.presets = data.presets
-      this.patch = true
-      this.$refs.dataBlobEditorModal.show()
+    show(data) {
+      console.log("Edit data blob:", data);
+      this.originalData = data;
+      this.existing = !!data.id;
+      this.id = data.id || "";
+      this.type = data.type || "";
+      this.json = JSON.stringify(this.filterData(data), null, 4);
+      this.presets = data.presets;
+      this.patch = true;
+      this.$refs.dataBlobEditorModal.show();
     },
     filterData(data) {
-      let copy = {...data}
-      delete copy["id"]
-      delete copy["type"]
-      delete copy["created_at"]
-      delete copy["updated_at"]
-      delete copy["presets"]
-      delete copy["version"]
-      return copy
+      let copy = { ...data };
+      delete copy["id"];
+      delete copy["type"];
+      delete copy["created_at"];
+      delete copy["updated_at"];
+      delete copy["presets"];
+      delete copy["version"];
+      return copy;
     },
-    validateId () {
-      var valid = this.id.match(/^[a-zA-Z0-9_-]+$/)
-      this.idState = (valid ? "valid" : "invalid")
-      return valid
+    validateId() {
+      var valid = this.id.match(/^[a-zA-Z0-9_-]+$/);
+      this.idState = valid ? "valid" : "invalid";
+      return valid;
     },
     validateType() {
-      var valid = this.type.match(/^[a-zA-Z0-9_-]+$/)
-      this.typeState = (valid ? "valid" : "invalid")
-      return valid
+      var valid = this.type.match(/^[a-zA-Z0-9_-]+$/);
+      this.typeState = valid ? "valid" : "invalid";
+      return valid;
     },
-    validateJson () {
+    validateJson() {
       try {
-        JSON.parse(this.json)
-        this.jsonState = "valid"
-        return true
+        JSON.parse(this.json);
+        this.jsonState = "valid";
+        return true;
       } catch (e) {
-        this.jsonState = "invalid"
-        return false
+        this.jsonState = "invalid";
+        return false;
       }
     },
     editRaw() {
-      this.patch = false
-      this.json = JSON.stringify(this.originalData || {}, null, 4)
+      this.patch = false;
+      this.json = JSON.stringify(this.originalData || {}, null, 4);
     },
     applyPreset(presetKey) {
       try {
-        const value = JSON.parse(this.json)
-        const preset = this.originalData["presets"][presetKey]
-        const note = preset['note'];
+        const value = JSON.parse(this.json);
+        const preset = this.originalData["presets"][presetKey];
+        const note = preset["note"];
         for (const key of Object.keys(preset)) {
-          if (key !== 'note') {
-            value[key] = preset[key]
+          if (key !== "note") {
+            value[key] = preset[key];
           }
         }
-        this.json = JSON.stringify(value, null, 4)
+        this.json = JSON.stringify(value, null, 4);
         if (note) {
           alert(note);
         }
       } catch (e) {
-        console.log("Error applying preset", e)
+        console.log("Error applying preset", e);
       }
     },
-    handleOk (evt) {
+    handleOk(evt) {
       if (this.validateId() && this.validateJson()) {
         var data = {
           ...JSON.parse(this.json),
           id: this.id,
-          type: this.type,
-        }
-        let method = this.patch ? axios.patch : axios.post
+          type: this.type
+        };
+        let method = this.patch ? axios.patch : axios.post;
         method(`/data/${this.type}/${this.id}?force=true`, data)
           .then(response => {
-            console.log("Success")
+            console.log("Success");
             this.$notify({
-              title: 'Data saved successfully',
-              type: 'success'
+              title: "Data saved successfully",
+              type: "success"
             });
           })
           .catch(error => {
-            console.log("Error saving data blob:", error)
+            console.log("Error saving data blob:", error);
             this.$notify({
-              title: 'Error saving data',
-              text: '' + error,
-              type: 'error',
+              title: "Error saving data",
+              text: "" + error,
+              type: "error"
             });
           });
       } else {
-        evt.preventDefault()
+        evt.preventDefault();
       }
-    },
+    }
   }
-}
+};
 </script>

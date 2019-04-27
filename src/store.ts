@@ -1,69 +1,69 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import { State } from './types'
-import VuexPersist from 'vuex-persist'
+import Vue from "vue";
+import Vuex from "vuex";
+import { State } from "./types";
+import VuexPersist from "vuex-persist";
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 const vuexPersist = new VuexPersist({
-  key: 'odysseus-admin',
+  key: "odysseus-admin",
   storage: localStorage
-})
+});
 
 const store = new Vuex.Store<State>({
   state: {
     dataBlobs: [],
     info: {
       text: "",
-      type: "",
+      type: ""
     },
     backend: {
       uri: "http://localhost:8888",
       username: "",
       password: "",
-      autoRefresh: 0,
+      autoRefresh: 0
     },
     dataBlobTypeChooser: {
-      selectedType: null,
-    },
+      selectedType: null
+    }
   },
   mutations: {
-    setBackend (state, backend) {
+    setBackend(state, backend) {
       state.backend = backend;
     },
-    setDataBlob (state, data) {
-      let found = false
+    setDataBlob(state, data) {
+      let found = false;
       state.dataBlobs = state.dataBlobs.map(e => {
         if (e.type === data.type && e.id == data.id) {
-          found = true
-          return data
+          found = true;
+          return data;
         } else {
-          return e
+          return e;
         }
-      })
+      });
       if (!found) {
-        state.dataBlobs.push(data)
+        state.dataBlobs.push(data);
       }
     },
-    deleteDataBlob (state, data) {
-      state.dataBlobs = state.dataBlobs.filter(e => e.type !== data.type || e.id !== data.id)
+    deleteDataBlob(state, data) {
+      state.dataBlobs = state.dataBlobs.filter(
+        e => e.type !== data.type || e.id !== data.id
+      );
     },
-    setAllDataBlobs (state, datas) {
-      state.dataBlobs = datas
+    setAllDataBlobs(state, datas) {
+      state.dataBlobs = datas;
     },
     setInfo(state, info) {
-      state.info = info
+      state.info = info;
     },
 
     dataBlobTypeChooser_set_selectedType(state, value) {
-      state.dataBlobTypeChooser.selectedType = value
-    },
+      state.dataBlobTypeChooser.selectedType = value;
+    }
   },
-  actions: {
-
-  },
-  plugins: [ vuexPersist.plugin ]
-})
+  actions: {},
+  plugins: [vuexPersist.plugin]
+});
 
 // DEBUGGING: Allow accessing store from global scope:
 // declare global {
@@ -71,4 +71,4 @@ const store = new Vuex.Store<State>({
 // }
 // window.store = store
 
-export default store
+export default store;

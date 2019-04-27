@@ -8,13 +8,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import Social from '@/components/Social.vue';
+import { mapState } from "vuex";
+import Social from "@/components/Social.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { Social }
-}
+  components: { Social },
+  computed: mapState(["backendUri"])
+};
 </script>

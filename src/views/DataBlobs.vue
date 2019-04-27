@@ -9,14 +9,12 @@
 
 
 <script>
-import { mapState } from 'vuex'
-import DataBlobList from '@/components/DataBlobList.vue';
-import DataBlobTypeChooser from '@/components/DataBlobTypeChooser.vue';
+import { mapState } from "vuex";
+import DataBlobList from "@/components/DataBlobList.vue";
+import DataBlobTypeChooser from "@/components/DataBlobTypeChooser.vue";
 
 export default {
-  computed: mapState([
-    'backendUri'
-  ]),
-  components: { DataBlobTypeChooser }
-}
+  components: { DataBlobTypeChooser },
+  computed: mapState(["backendUri"])
+};
 </script>
