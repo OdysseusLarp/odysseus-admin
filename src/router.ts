@@ -7,6 +7,7 @@ import Social from './views/Social.vue';
 import ShipLog from './views/ShipLog.vue';
 import Fleet from './views/Fleet.vue';
 import Infoboard from './views/Infoboard.vue';
+import EmptyEpsilon from './views/EmptyEpsilon.vue';
 
 Vue.use(VueRouter)
 
@@ -46,6 +47,11 @@ export default new VueRouter({
       path: '/infoboard',
       name: 'infoboard',
       component: Infoboard
+    },
+    {
+      path: '/emptyepsilon',
+      name: 'emptyepsilon',
+      component: EmptyEpsilon
     },
   ]
 })
