@@ -18,7 +18,7 @@
 export default {
   props: {
     time: {
-      type: String,
+      type: [String, Number, Date],
       default: "0"
     },
     warn: {
