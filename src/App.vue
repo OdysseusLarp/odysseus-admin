@@ -6,7 +6,7 @@
       <b-collapse id="nav_collapse" is-nav>
         <b-navbar-nav tabs>
           <b-nav-item to="/data">Data stores</b-nav-item>
-          <b-nav-item to="/tasks">Tasks</b-nav-item>
+          <b-nav-item to="/jump">Jump drive</b-nav-item>
           <b-nav-item to="/social">Social</b-nav-item>
           <b-nav-item to="/fleet">Fleet</b-nav-item>
           <b-nav-item to="/ship-log">Ship log</b-nav-item>
