@@ -28,7 +28,7 @@
         </tr>
         <tr>
           <th>Coordinates:</th>
-          <td class="value">FIXME</td>
+          <td class="value">{{ jumpCoordinates }}</td>
         </tr>
         <tr>
           <th>Temperature:</th>
@@ -158,6 +158,13 @@ export default {
     },
     jumpstate() {
       return this.$store.state.dataBlobs.find(blob => blob.type === 'ship' && blob.id === 'jumpstate');
+    },
+    jumpCoordinates() {
+      const coordinates = this.jump ? this.jump.coordinates : null;
+      if (!coordinates) return 'Not defined';
+      const { sub_sector, sector, sub_quadrant, planet_orbit } = coordinates;
+      const gridDetails = `${sub_quadrant}-${sector}-${sub_sector}`;
+      return planet_orbit ? `${gridDetails} (Orbit ${planet_orbit})` : gridDetails;
     },
     statusDescription() {
       const desc = DESCRIPTION[this.jump.status]
