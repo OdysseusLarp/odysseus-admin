@@ -39,6 +39,16 @@
           <th>Coherence:</th>
           <td class="value">{{jumpstate.coherence}}%</td>
         </tr>
+        <tr v-if="jump.status === 'preparation'">
+          <th>Prep tasks:</th>
+          <td class="value">
+            <span :class="spectralCalibrationStatus">Spectral calibration: {{spectralCalibrationStatus}}</span><br>
+            <span :class="crystalStatus">Crystal installation: {{crystalStatus}}</span>
+          </td>
+          <td>
+            Expected color: {{spectralCalibrationColor}}
+          </td>
+        </tr>
       </table>
 
       <h2>Actions</h2>
@@ -60,8 +70,12 @@
         (Approve or reject proposed jump coordinates)
       </div>
       <div v-if="jump.status === 'preparation'">
-        <b-button variant="danger" @click="write({status: 'prep_complete'})">Mark prep done</b-button>
-        (Prep should be marked as done through tasks)
+        <b-button v-if="spectralCalibrationStatus === 'broken'" variant="primary" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'fixed'})">Mark spectral calibration done</b-button>
+        <b-button v-if="spectralCalibrationStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'broken'})">Mark spectral calibration NOT done</b-button>
+        <b-button v-if="crystalStatus === 'broken'" variant="primary" @click="writeBlob({type:'box', id:'jump_drive_crystal', status: 'fixed'})">Mark crystal installed</b-button>
+        <b-button v-if="crystalStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_drive_crystal', status: 'broken'})">Mark crystal NOT installed</b-button>
+        <b-button variant="danger" @click="write({status: 'prep_complete'})">Next state (prep complete)</b-button>
+        (Will move forward once all tasks are done and calibrated)
       </div>
       <div v-if="jump.status === 'prep_complete'">
         <b-button variant="secondary" @click="write({status: 'ready'})">Mark ready for regulation jump</b-button>
@@ -102,15 +116,26 @@
   font-size: 150%;
   th, td {
     padding-right: 2em;
+    vertical-align: top;
   }
   .label {
     white-space: nowrap;
   }
   .value {
     white-space: nowrap;
+    .initial, .fixed {
+      color: #29A745;
+    }
+    .calibrating {
+      color: #FFC107;
+    }
+    .broken {
+      color: #DC3545;
+    }
   }
   .info {
     font-size: 66%;
+    vertical-align: middle;
   }
 }
 .color {
@@ -183,11 +208,23 @@ export default {
     },
     jumpSecs() {
       return (Date.now() - this.jump.last_jump) / 1000
-    }
+    },
+    spectralCalibrationStatus() {
+      return this.$store.state.dataBlobs
+        .find(blob => blob.type === 'task' && blob.id === 'jump_drive_spectral_calibration').status
+    },
+    spectralCalibrationColor() {
+      return this.$store.state.dataBlobs
+        .find(blob => blob.type === 'box' && blob.id === 'jump_drive_spectral_calibration').context.color
+    },
+    crystalStatus() {
+      return this.$store.state.dataBlobs
+        .find(blob => blob.type === 'task' && blob.id === 'jump_drive_crystal').status
+    },
   },
   methods: {
     write(data) {
-      if (confirm("Are you want to update the state?\n" + JSON.stringify(data, undefined, 2))) {
+      if (confirm("Do you want to update the state?\n" + JSON.stringify(data, undefined, 2))) {
         console.log("Writing jump drive state:", data);
         axios.patch(`/data/ship/jump?force=true`, data)
         .then(response => {
@@ -206,7 +243,28 @@ export default {
           });
         });
       }
-    }
+    },
+    writeBlob(data) {
+      if (confirm("Do you want to update the data blob?\n" + JSON.stringify(data, undefined, 2))) {
+        console.log("Writing data blob:", data);
+        axios.patch(`/data/${data.type}/${data.id}?force=true`, data)
+        .then(response => {
+          console.log("Success");
+          this.$notify({
+            title: `Data blob '${data.id}' updated`,
+            type: "success"
+          });
+        })
+        .catch(error => {
+          console.log("Error saving data blob:", error);
+          this.$notify({
+            title: "Error saving data",
+            text: "" + error,
+            type: "error"
+          });
+        });
+      }
+    },
   },
 };
 </script>
