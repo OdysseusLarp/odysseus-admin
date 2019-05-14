@@ -41,6 +41,9 @@
                         placeholder="Log message...">
           </b-form-textarea>
         </b-form-group>
+        <b-form-group>
+          <b-form-checkbox id="showPopup" v-model="showPopup">Show popup</b-form-checkbox>
+        </b-form-group>
       </b-form>
     </b-modal>
   </div>
@@ -83,7 +86,8 @@ export default {
       logs: [],
       logTypes: ["SUCCESS", "INFO", "WARNING", "ERROR"],
       newLogType: "SUCCESS",
-      newLogMessage: ""
+      newLogMessage: "",
+      showPopup: false,
     };
   },
 
@@ -105,18 +109,20 @@ export default {
   },
   methods: {
     handleOk() {
-      this.addLogEntry(this.newLogType, this.newLogMessage);
+      this.addLogEntry(this.newLogType, this.newLogMessage, this.showPopup);
     },
-    async addLogEntry(type, message) {
+    async addLogEntry(type, message, showPopup) {
       if (!type || !message) {
         this.errors.put("Type or message was not provided");
         return;
       }
       this.isLoading = true;
+      const logEntry = { type, message };
+      if (showPopup) logEntry.metadata = { showPopup };
       await axios
         .put(
           "/log",
-          { type, message },
+          logEntry,
           { baseURL: this.$store.state.backend.uri }
         )
         .then(res => {
