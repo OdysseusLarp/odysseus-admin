@@ -20,9 +20,8 @@
             <p class="card-text">{{ vote.description }}</p>
             <p class="card-text">
                 <ul>
-                    <li>Is public: {{ vote.is_public }}</li>
-                    <li>Will be active until: {{ vote.active_until ? vote.active_until : 'Not defined' }}</li>
-                    <li>Allowed voter groups: {{ vote.allowed_groups ? vote.allowed_groups : 'Everyone' }}</li>
+                    <li>Will be active for: {{ vote.duration_minutes }} minutes</li>
+                    <li>Allowed voters: {{ vote.allowed_voters }}</li>
                     <li>Vote options: {{ vote.options.map(o => o.text).join(', ') }}</li>
                 </ul>
             </p>
