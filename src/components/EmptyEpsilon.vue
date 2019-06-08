@@ -53,6 +53,7 @@
                         <b-form-select id="selected-type" v-model="selectedType" :options="types"></b-form-select>
                     </b-form-group>
                     <b-form-group
+                        v-if="selectedType !== 'hull'"
                         label="Target"
                         label-for="selected-target">
                         <b-form-select id="selected-target" v-model="selectedTarget" :options="selectedType === 'systems' ? systems : weapons"></b-form-select>
@@ -138,7 +139,7 @@ const systems = [
 ];
 const weapons = ["homing", "nuke", "mine", "emp", "hvli"];
 
-const types = ["systems", "weapons"];
+const types = ["systems", "weapons", "hull"];
 const systemValueTypes = ["health", "heat"];
 const weaponValueTypes = ["count"];
 
@@ -211,6 +212,12 @@ export default {
           command: "setWeaponStorage",
           value,
           target: selectedTarget
+        });
+      }
+      if (selectedType === "hull") {
+        return this.makeSetValueRequest({
+          command: "setHull",
+          value
         });
       }
       const command =
