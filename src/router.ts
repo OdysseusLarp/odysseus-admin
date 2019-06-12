@@ -8,6 +8,7 @@ import ShipLog from "./views/ShipLog.vue";
 import Fleet from "./views/Fleet.vue";
 import Infoboard from "./views/Infoboard.vue";
 import EmptyEpsilon from "./views/EmptyEpsilon.vue";
+import Dmx from './views/Dmx.vue';
 
 Vue.use(VueRouter);
 
@@ -52,6 +53,11 @@ export default new VueRouter({
       path: "/emptyepsilon",
       name: "emptyepsilon",
       component: EmptyEpsilon
-    }
+    },
+    {
+      path: "/dmx",
+      name: "dmx",
+      component: Dmx
+    },
   ]
 });
