@@ -176,7 +176,7 @@ export default {
     updateVoteStatus(id, status) {
       const is_active = status === "APPROVED";
       axios({
-        url: `/vote/${id}`,
+        url: `/vote/${id}?sendMessage=true`,
         baseURL: this.$store.state.backend.uri,
         method: "put",
         data: { status, is_active }
@@ -190,7 +190,7 @@ export default {
     },
     updatePostStatus(id, status) {
       axios({
-        url: "/post",
+        url: "/post?sendMessage=true",
         baseURL: this.$store.state.backend.uri,
         method: "put",
         data: { id, status }
