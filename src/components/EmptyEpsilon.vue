@@ -18,10 +18,13 @@
         <b-col cols="8">
             <div>
                 <h2>Connection status:
-                <span v-if="connectionStatus.isConnectionHealthy" class="green">HEALTHY</span>
+                <span v-if="!shipMetadata.ee_connection_enabled" class="yellow">DISABLED</span>
+                <span v-else-if="connectionStatus.isConnectionHealthy" class="green">HEALTHY</span>
                 <span v-else class="red">UNHEALTHY</span>
                 </h2>
                 <p v-if="!connectionStatus.isConnectionHealthy" class="red">Error: {{ connectionStatus.lastErrorMessage }}</p>
+                <b-button v-if="!shipMetadata.ee_connection_enabled" variant="success" @click="toggleConnectionEnabled(true)">Enable connection</b-button>
+                <b-button v-else variant="danger" @click="toggleConnectionEnabled(false)">Disable connection</b-button>
                 <hr>
             </div>
             <div>
@@ -29,8 +32,8 @@
                 <span v-if="shipMetadata.ee_sync_enabled" class="green">ENABLED</span>
                 <span v-else class="red">DISABLED</span>
                 </h2>
-                <b-button v-if="!shipMetadata.ee_sync_enabled" variant="success" @click="toggleSynchronization(true)">Enable</b-button>
-                <b-button v-else variant="danger" @click="toggleSynchronization(false)">Disable</b-button>
+                <b-button v-if="!shipMetadata.ee_sync_enabled" variant="success" @click="toggleSynchronization(true)">Enable state synchronization</b-button>
+                <b-button v-else variant="danger" @click="toggleSynchronization(false)">Disable state synchronization</b-button>
                 <b-button v-if="!shipMetadata.ee_sync_enabled" variant="primary" @click="pushFullGameState()">Push current state to EE</b-button>
                 <hr>
             </div>
@@ -159,6 +162,7 @@ export default {
       pendingRequests: new Set([]),
       isAlertLevelChangePending: false,
       isSynchronizationChangePending: false,
+      isConnectionChangePending: false,
       isPushGameStatePending: false,
       isLoading: true,
       types,
@@ -176,6 +180,7 @@ export default {
     gameState() {
       this.isAlertLevelChangePending = false;
       this.isSynchronizationChangePending = false;
+      this.isConnectionChangePending = false;
       return this.$store.state.dataBlobs.find(
         e => e.type === "ship" && e.id === "ee"
       );
@@ -272,6 +277,24 @@ export default {
       }).catch(error => {
         this.errors.push("" + error);
         this.isSynchronizationChangePending = false;
+      });
+    },
+    toggleConnectionEnabled(value) {
+      if (
+        this.isConnectionChangePending ||
+        value === this.shipMetadata.ee_connection_enabled
+      ) {
+        return;
+      }
+      this.isConnectionChangePending = true;
+      axios({
+        url: "/data/ship/metadata",
+        baseURL: this.$store.state.backend.uri,
+        method: "patch",
+        data: { ee_connection_enabled: value, version: this.shipMetadata.version }
+      }).catch(error => {
+        this.errors.push("" + error);
+        this.isConnectionChangePending = false;
       });
     },
     async pushFullGameState(value) {
