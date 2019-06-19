@@ -23,8 +23,9 @@
           <td class="value">{{jumpstate.jumpT}}</td>
         </tr>
         <tr>
-          <th class="label">Breaking jump:</th>
-          <td class="value">{{jump.breaking_jump}}</td>
+          <th class="label">Jump type:</th>
+          <td class="value">{{jump.breaking_jump ? "breaking" : jump.minor_breaking_jump ? "minor breaking" : "non-breaking"}}</td>
+          <td class="info">{{jump.breaking_jump ? "Will break a lot of things" : jump.minor_breaking_jump ? "Will break maintenance tasks plus a little EE tasks" : "Will only break maintenance tasks"}} (can be changed during jump)</td>
         </tr>
         <tr>
           <th>Coordinates:</th>
@@ -94,7 +95,8 @@
         <b-button :variant="(jump.breaking_jump && jumpSecs < 6*60) ? 'danger' : 'primary'" @click="write({status: 'broken'})">End jump</b-button>
         <b-button variant="secondary" @click="write({status: 'cooldown'})">End jump with nothing breaking</b-button>
         <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: true})">Change to breaking jump</b-button>
-        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false})">Change to non-breaking jump</b-button>
+        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: true})">Change to minor breaking jump</b-button>
+        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: false})">Change to non-breaking jump</b-button>
         <br>(Switching between non/breaking jump should be done before 5min mark - after that A/V might not react correctly, but breakage will work as expected. Breaking jump should not be ended before 6min mark due to A/V.)
       </div>
       <div>
