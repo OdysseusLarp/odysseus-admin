@@ -163,7 +163,7 @@ export default {
         .then(() => this.fetchFleet())
         .catch(err => {
           console.log('error patching', err);
-          this.errors.push(err + '');
+          this.errors.push(`[${Date.now()}] ${err}`);
         });
     },
     async fetchFleet() {
@@ -186,7 +186,7 @@ export default {
           this.gridScanMax = get(this.odysseus, 'metadata.grid_scan_duration.max_seconds', 0);
         })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
       this.isLoading = false;
     }

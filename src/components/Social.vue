@@ -29,6 +29,9 @@
             <b-button variant="danger" @click="updateVoteStatus(vote.id, 'REJECTED')">Reject</b-button>
         </b-card>
     </div>
+    <div v-else>
+      No pending votes.
+    </div>
     <div v-if="!!pendingPosts.length">
         <h2>Pending new posts</h2>
         <b-card v-for="post in pendingPosts" :key="post.id"
@@ -42,13 +45,20 @@
             <b-button variant="danger" @click="updatePostStatus(post.id, 'REJECTED')">Reject</b-button>
         </b-card>
     </div>
+    <div v-else>
+      No pending posts.
+    </div>
     <div v-if="!!unreadMessages.length">
-    <h2>Unread messages</h2>
-      <ul>
-        <li v-for="unreadMessageSummary in unreadMessages" :key="unreadMessageSummary.full_name">
-          {{ unreadMessageSummary.full_name }} ({{ unreadMessageSummary.unread_count }})
-        </li>
-      </ul>
+      <h2>Unread messages</h2>
+      <p>
+        <b-form-checkbox v-model="showNpcUnreadMessagesOnly" @change="parseUnreadMessages" name="check-button" switch>
+          Show only NPCs unread messages
+        </b-form-checkbox>
+      </p>
+      <b-table striped hover :items="formattedUnreadMessages" :fields="unreadTableColumns"></b-table>
+    </div>
+    <div v-else>
+      No unread messages.
     </div>
   </div>
 </template>
@@ -80,7 +90,30 @@ export default {
       pendingRequests: new Set([]),
       pendingVotes: [],
       pendingPosts: [],
-      unreadMessages: []
+      unreadMessages: [],
+      formattedUnreadMessages: [],
+      showNpcUnreadMessagesOnly: false,
+      unreadTableColumns: [
+        {
+          key: 'full_name',
+          label: 'Full name'
+        },
+        {
+          key: 'card_id',
+          label: 'Card ID'
+        },
+        {
+          key: 'is_character',
+          label: 'NPC',
+          sortable: true,
+          formatter: value => value ? 'No' : 'Yes'
+        },
+        {
+          key: 'unread_count',
+          label: 'Count',
+          sortable: true
+        },
+      ],
     };
   },
 
@@ -125,7 +158,7 @@ export default {
           this.pendingVotes = response.data;
         })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
       this.pendingRequests.delete("votes");
       this.updateIsLoading();
@@ -139,7 +172,7 @@ export default {
           this.pendingPosts = response.data;
         })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
       this.pendingRequests.delete("posts");
       this.updateIsLoading();
@@ -149,26 +182,34 @@ export default {
       this.updateIsLoading();
       await axios
         .get("/messaging/unread", { baseURL: this.$store.state.backend.uri })
-        .then(response => this.parseUnreadMessages(response.data))
+        .then(response => {
+          this.unreadMessages = response.data;
+          this.parseUnreadMessages();
+        })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
       this.pendingRequests.delete("messages");
       this.updateIsLoading();
     },
-    parseUnreadMessages(messages) {
-      const unreadSummary = messages.reduce((prev, cur) => {
+    parseUnreadMessages(showNpcUnreadMessagesOnly = this.showNpcUnreadMessagesOnly) {
+      const unreadSummary = this.unreadMessages.reduce((prev, cur) => {
         const obj = prev[cur.target_person] || {
           full_name: cur.receiver.full_name,
+          card_id: cur.receiver.card_id,
+          is_character: cur.receiver.is_character,
           unread_count: 0
         };
         obj.unread_count = obj.unread_count + 1;
         prev[cur.target_person] = obj;
         return prev;
       }, {});
-      this.unreadMessages = Object.keys(unreadSummary)
+      const unreadMessages = Object.keys(unreadSummary)
         .map(key => unreadSummary[key])
+        .filter(person => showNpcUnreadMessagesOnly ? !person.is_character : true)
         .sort((a, b) => (a.unread_count > b.unread_count ? -1 : 1));
+
+      this.formattedUnreadMessages = unreadMessages;
     },
     updateIsLoading() {
       this.isLoading = this.pendingRequests.size > 0;
@@ -185,7 +226,7 @@ export default {
           this.fetchData();
         })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
     },
     updatePostStatus(id, status) {
@@ -199,7 +240,7 @@ export default {
           this.fetchData();
         })
         .catch(error => {
-          this.errors.push("" + error);
+          this.errors.push(`[${Date.now()}] ${error}`);
         });
     }
   }
