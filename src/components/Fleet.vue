@@ -70,13 +70,14 @@
         </div>
     </b-card>
     <h2>All ships</h2>
-    <b-button v-b-toggle.collapse-1 variant="primary">Toggle visibility</b-button>
+    <b-button v-b-toggle.collapse-1 variant="primary">Show data of all ships</b-button>
     <b-collapse id="collapse-1" class="mt-2">
       <div v-if="!!fleet.length">
         <vue-json-pretty :data="fleet" class="fleet-state"></vue-json-pretty>
       </div>
     </b-collapse>
-    <h2>Batch actions</h2>
+    <h2>Actions</h2>
+    <b-button class="batch-button" variant="outline-primary" size="lg" @click="emitRefreshMap" >Refresh starmap</b-button>
     <div>
       <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
        <b-modal
@@ -123,6 +124,7 @@ button {
 import axiox from "axios";
 import VueJsonPretty from "vue-json-pretty";
 import { get, isInteger } from 'lodash';
+import { pushError } from '../helpers';
 
 export default {
   components: {
@@ -185,12 +187,12 @@ export default {
     patchMetadata(key_path, value) {
       const numericValue = parseInt(value, 10);
       if (!isInteger(numericValue))
-        return this.errors.push(`[${Date.now()}] Value provided for ${key_path} is not an integer`);
+        return pushError(this.errors, `Value provided for ${key_path} is not an integer`);
       axios.patch(`/fleet/odysseus/metadata`, { key_path, value: numericValue })
         .then(() => this.fetchFleet())
         .catch(err => {
           console.log('error patching', err);
-          this.errors.push(`[${Date.now()}] ${err}`);
+          pushError(this.errors, err);
         });
     },
     async fetchFleet() {
@@ -213,7 +215,7 @@ export default {
           this.gridScanMax = get(this.odysseus, 'metadata.grid_scan_duration.max_seconds', 0);
         })
         .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
+          pushError(this.errors, err);
         });
       this.isLoading = false;
     },
@@ -224,7 +226,7 @@ export default {
           window.alert('Ships set to visible');
         })
         .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
+          pushError(this.errors, err);
         });
     },
     async setPersonsVisible() {
@@ -234,7 +236,17 @@ export default {
           window.alert('Persons set to visible');
         })
         .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
+          pushError(this.errors, err);
+        });
+    },
+    async emitRefreshMap() {
+      await axios
+        .post("/emit/refreshMap", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          window.alert('Emitted refreshMap event');
+        })
+        .catch(error => {
+          pushError(this.errors, err);
         });
     }
   }
