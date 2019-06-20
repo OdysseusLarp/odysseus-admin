@@ -55,7 +55,7 @@
     <div v-else>
       No unread messages.
     </div>
-    <div v-if="!!formattedAuditLogEntries.length">
+    <div v-if="!!auditLogEntries.length">
       <h2>Datahub audit log</h2>
       <p>
         Showing last 150 events.
