@@ -44,6 +44,7 @@
           <th>Prep tasks:</th>
           <td class="value">
             <span :class="spectralCalibrationStatus">Spectral calibration: {{spectralCalibrationStatus}}</span><br>
+            <span :class="jumpReactorStatus">Jump reactor: {{jumpReactorStatus}}</span><br>
           </td>
         </tr>
       </table>
@@ -69,6 +70,8 @@
       <div v-if="jump.status === 'preparation'">
         <b-button v-if="spectralCalibrationStatus === 'broken'" variant="primary" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'fixed'})">Mark spectral calibration done</b-button>
         <b-button v-if="spectralCalibrationStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'broken'})">Mark spectral calibration NOT done</b-button>
+        <b-button v-if="jumpReactorStatus === 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_reactor', status: 'fixed'})">Mark jump reactor done</b-button>
+        <b-button v-if="jumpReactorStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_reactor', status: 'broken'})">Mark jump reactor NOT done</b-button>
         <b-button variant="danger" @click="write({status: 'prep_complete'})">Next state (prep complete)</b-button>
         (Will move forward once all tasks are done and calibrated)
       </div>
@@ -208,6 +211,10 @@ export default {
     spectralCalibrationStatus() {
       return this.$store.state.dataBlobs
         .find(blob => blob.type === 'task' && blob.id === 'jump_drive_spectral_calibration').status
+    },
+    jumpReactorStatus() {
+      return this.$store.state.dataBlobs
+        .find(blob => blob.type === 'task' && blob.id === 'jump_reactor').status
     },
   },
   methods: {
