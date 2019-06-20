@@ -76,6 +76,27 @@
         <vue-json-pretty :data="fleet" class="fleet-state"></vue-json-pretty>
       </div>
     </b-collapse>
+    <h2>Batch actions</h2>
+    <div>
+      <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
+       <b-modal
+        id="modal-set-ships-visible"
+        ref="modal"
+        title="Set all ships to visible"
+        @ok="handleShipsVisibleOk">
+        WARNING: Pressing OK will set all fleet ships to visible.
+       </b-modal>
+    </div>
+    <div>
+      <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-set-persons-visible>Make all persons visible</b-button>
+       <b-modal
+        id="modal-set-persons-visible"
+        ref="modal"
+        title="Set all persons to visible"
+        @ok="handlePersonsVisibleOk">
+        WARNING: Pressing OK will set all persons to visible, except for a selected few.
+       </b-modal>
+    </div>
   </div>
 </template>
 
@@ -92,6 +113,9 @@ button {
 }
 .card {
   margin: 15px;
+}
+.batch-button {
+  margin-bottom: 12px;
 }
 </style>
 
@@ -143,8 +167,11 @@ export default {
     clearInterval(this.dataAgeTimer);
   },
   methods: {
-    handleOk() {
-      this.addLogEntry(this.newLogType, this.newLogMessage);
+    handleShipsVisibleOk() {
+      this.setShipsVisible();
+    },
+    handlePersonsVisibleOk() {
+      this.setPersonsVisible();
     },
     fetchData() {
       this.fetchFleet();
@@ -189,6 +216,26 @@ export default {
           this.errors.push(`[${Date.now()}] ${error}`);
         });
       this.isLoading = false;
+    },
+    async setShipsVisible() {
+      await axios
+        .put("/fleet/set-visible", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          window.alert('Ships set to visible');
+        })
+        .catch(error => {
+          this.errors.push(`[${Date.now()}] ${error}`);
+        });
+    },
+    async setPersonsVisible() {
+      await axios
+        .put("/person/set-visible", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          window.alert('Persons set to visible');
+        })
+        .catch(error => {
+          this.errors.push(`[${Date.now()}] ${error}`);
+        });
     }
   }
 };
