@@ -98,6 +98,57 @@
         WARNING: Pressing OK will set all persons to visible, except for a selected few.
        </b-modal>
     </div>
+    <div>
+      <h3>Move ships</h3>
+      <div class="move-ships-wrapper">
+        <div class="move-ships-checkboxes">
+          <b-form-group label="Select ships to move">
+            <b-form-checkbox-group
+                v-model="selectedShips"
+                :options="shipCheckboxes"
+                name="flavour-1a"
+                stacked
+              ></b-form-checkbox-group>
+          </b-form-group>
+      </div>
+      <div class="move-ships-coordinates">
+        Enter coordinates
+        <b-input-group prepend="Paste grid name" class="mt-3 paste-grid-name">
+            <b-form-input v-model="pastedGridName"></b-form-input>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="parsePastedGridName">Parse</b-button>
+            </b-input-group-append>
+          </b-input-group>
+        <div class="coordinates-wrapper">
+          <b-form-input
+            v-model="sub_quadrant"
+            placeholder="Sub quadrant"
+            trim
+          ></b-form-input>
+          <b-form-input
+            v-model="sector"
+            placeholder="Sector"
+            trim
+          ></b-form-input>
+          <b-form-input
+            v-model="sub_sector"
+            placeholder="Sub Sector"
+            trim
+          ></b-form-input>
+          <b-form-input
+            v-model="planet_orbit"
+            placeholder="Planet orbit"
+            trim
+          ></b-form-input>
+        </div>
+        <b-button variant="outline-primary" @click="validateCoordinates">Validate coordinates</b-button>
+        <p>
+          {{ coordinateStatus }}
+        </p>
+        <b-button variant="outline-warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
+      </div>
+    </div>
+    </div>
   </div>
 </template>
 
@@ -117,6 +168,30 @@ button {
 }
 .batch-button {
   margin-bottom: 12px;
+}
+.paste-grid-name {
+  margin-bottom: 12px;
+}
+.move-ships-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+.move-ships-checkboxes {
+  flex: 2;
+}
+.move-ships-coordinates {
+  flex: 3;
+}
+.move-ships-coordinates > p {
+  padding: 15px;
+}
+.coordinates-wrapper {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 16px;
+}
+.coordinates-wrapper > input {
+  margin: 4px;
 }
 </style>
 
@@ -145,7 +220,15 @@ export default {
       objectScanMax: 0,
       gridScanMin: 0,
       gridScanMax: 0,
-      selectedShip: null,
+      selectedShips: [],
+      shipCheckboxes: [],
+      sub_quadrant: '',
+      sector: '',
+      sub_sector: '',
+      planet_orbit: '',
+      coordinateStatus: '',
+      areCoordinatesValid: false,
+      pastedGridName: ''
     };
   },
 
@@ -184,6 +267,58 @@ export default {
     removeError(i) {
       this.errors.splice(i, 1);
     },
+    parsePastedGridName() {
+      const gridName = this.pastedGridName.split('-').map(s => s.trim());
+      if (gridName.length !== 4) return pushError(this.errors, 'Invalid grid format was copypasted');
+      this.sub_quadrant = gridName[0] + '-' + gridName[1];
+      this.sector = gridName[2];
+      this.sub_sector = gridName[3];
+      this.pastedGridName = '';
+    },
+    async validateCoordinates(coordinates) {
+      let data;
+      if (!coordinates || !coordinates.sub_sector) {
+        const { sub_quadrant, sector, sub_sector, planet_orbit } = this;
+        data = { sub_quadrant, sector, sub_sector };
+        if (planet_orbit) data.planet_orbit = planet_orbit;
+      } else {
+        data = coordinates;
+      }
+      console.log('validating', data);
+      await axios
+        .post("/fleet/odysseus/jump/validate?validate_distance=false", data)
+        .then(response => {
+         console.log('res =>', response);
+         this.coordinateStatus = response.data.message || 'Coordinates are OK';
+         this.areCoordinatesValid = response.data.isValid;
+        })
+        .catch(error => {
+          pushError(this.errors, error);
+        });
+    },
+    async moveShips() {
+      const shipIds = this.selectedShips;
+      const { sub_quadrant, sector, sub_sector, planet_orbit } = this;
+      const jumpTarget = { sub_quadrant, sector, sub_sector };
+      if (planet_orbit) jumpTarget.planet_orbit = planet_orbit;
+      await this.validateCoordinates(jumpTarget);
+      if (!this.areCoordinatesValid) return pushError(this.errors, 'Invalid coordinates');
+      await axios
+        .post("/fleet/move", { shipIds, jumpTarget })
+        .then(response => {
+         this.sub_quadrant = '';
+         this.sector = '';
+         this.sub_sector = '';
+         this.planet_orbit = '';
+         this.coordinateStatus = '';
+         this.areCoordinatesValid = false;
+         this.selectedShips = [];
+         window.alert('Ships were moved');
+        })
+        .catch(error => {
+          pushError(this.errors, error);
+        });
+    },
     patchMetadata(key_path, value) {
       const numericValue = parseInt(value, 10);
       if (!isInteger(numericValue))
@@ -204,6 +339,10 @@ export default {
             (a, b) => (a.id === "odysseus" ? -1 : 1)
           );
           this.odysseus = this.fleet.find(ship => ship.id === "odysseus");
+          this.shipCheckboxes = this.fleet.map(ship => ({
+            value: ship.id,
+            text: `${ship.name} (${ship.position.name})`
+          }));
           this.fetchTimestamp = Date.now();
           this.calculateDataAge();
           this.jumpRange = get(this.odysseus, 'metadata.jump_range', 0);
@@ -215,7 +354,7 @@ export default {
           this.gridScanMax = get(this.odysseus, 'metadata.grid_scan_duration.max_seconds', 0);
         })
         .catch(error => {
-          pushError(this.errors, err);
+          pushError(this.errors, error);
         });
       this.isLoading = false;
     },
@@ -236,7 +375,7 @@ export default {
           window.alert('Persons set to visible');
         })
         .catch(error => {
-          pushError(this.errors, err);
+          pushError(this.errors, error);
         });
     },
     async emitRefreshMap() {
@@ -246,7 +385,7 @@ export default {
           window.alert('Emitted refreshMap event');
         })
         .catch(error => {
-          pushError(this.errors, err);
+          pushError(this.errors, error);
         });
     }
   }
