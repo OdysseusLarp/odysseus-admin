@@ -23,8 +23,9 @@
           <td class="value">{{jumpstate.jumpT}}</td>
         </tr>
         <tr>
-          <th class="label">Breaking jump:</th>
-          <td class="value">{{jump.breaking_jump}}</td>
+          <th class="label">Jump type:</th>
+          <td class="value">{{jump.breaking_jump ? "breaking" : jump.minor_breaking_jump ? "minor breaking" : "non-breaking"}}</td>
+          <td class="info">{{jump.breaking_jump ? "Will break a lot of things" : jump.minor_breaking_jump ? "Will break maintenance tasks plus a little EE tasks" : "Will only break maintenance tasks"}} (can be changed during jump)</td>
         </tr>
         <tr>
           <th>Coordinates:</th>
@@ -43,10 +44,6 @@
           <th>Prep tasks:</th>
           <td class="value">
             <span :class="spectralCalibrationStatus">Spectral calibration: {{spectralCalibrationStatus}}</span><br>
-            <span :class="crystalStatus">Crystal installation: {{crystalStatus}}</span>
-          </td>
-          <td>
-            Expected color: {{spectralCalibrationColor}}
           </td>
         </tr>
       </table>
@@ -72,8 +69,6 @@
       <div v-if="jump.status === 'preparation'">
         <b-button v-if="spectralCalibrationStatus === 'broken'" variant="primary" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'fixed'})">Mark spectral calibration done</b-button>
         <b-button v-if="spectralCalibrationStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_drive_spectral_calibration', status: 'broken'})">Mark spectral calibration NOT done</b-button>
-        <b-button v-if="crystalStatus === 'broken'" variant="primary" @click="writeBlob({type:'box', id:'jump_drive_crystal', status: 'fixed'})">Mark crystal installed</b-button>
-        <b-button v-if="crystalStatus !== 'broken'" variant="danger" @click="writeBlob({type:'box', id:'jump_drive_crystal', status: 'broken'})">Mark crystal NOT installed</b-button>
         <b-button variant="danger" @click="write({status: 'prep_complete'})">Next state (prep complete)</b-button>
         (Will move forward once all tasks are done and calibrated)
       </div>
@@ -94,7 +89,8 @@
         <b-button :variant="(jump.breaking_jump && jumpSecs < 6*60) ? 'danger' : 'primary'" @click="write({status: 'broken'})">End jump</b-button>
         <b-button variant="secondary" @click="write({status: 'cooldown'})">End jump with nothing breaking</b-button>
         <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: true})">Change to breaking jump</b-button>
-        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false})">Change to non-breaking jump</b-button>
+        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: true})">Change to minor breaking jump</b-button>
+        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: false})">Change to non-breaking jump</b-button>
         <br>(Switching between non/breaking jump should be done before 5min mark - after that A/V might not react correctly, but breakage will work as expected. Breaking jump should not be ended before 6min mark due to A/V.)
       </div>
       <div>
@@ -212,14 +208,6 @@ export default {
     spectralCalibrationStatus() {
       return this.$store.state.dataBlobs
         .find(blob => blob.type === 'task' && blob.id === 'jump_drive_spectral_calibration').status
-    },
-    spectralCalibrationColor() {
-      return this.$store.state.dataBlobs
-        .find(blob => blob.type === 'box' && blob.id === 'jump_drive_spectral_calibration').context.color
-    },
-    crystalStatus() {
-      return this.$store.state.dataBlobs
-        .find(blob => blob.type === 'task' && blob.id === 'jump_drive_crystal').status
     },
   },
   methods: {
