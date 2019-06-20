@@ -6,11 +6,6 @@
         :hover="true"
         @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
-    <div>
-        <p>
-            Only pending actions are shown on this page.
-        </p>
-    </div>
     <div v-if="!!pendingVotes.length">
         <h2>Pending new votes</h2>
         <b-card v-for="vote in pendingVotes" :key="vote.id"
@@ -55,10 +50,22 @@
           Show only NPCs unread messages
         </b-form-checkbox>
       </p>
-      <b-table striped hover :items="formattedUnreadMessages" :fields="unreadTableColumns"></b-table>
+      <b-table striped hover bordered :items="formattedUnreadMessages" :fields="unreadTableColumns"></b-table>
     </div>
     <div v-else>
       No unread messages.
+    </div>
+    <div v-if="!!formattedAuditLogEntries.length">
+      <h2>Datahub audit log</h2>
+      <p>
+        Showing last 150 events.
+      </p>
+      <p>
+        <b-form-checkbox v-model="showNpcAuditLog" @change="parseAuditLogEntries" name="check-button" switch>
+          Show logins to NPC accounts
+        </b-form-checkbox>
+      </p>
+      <b-table striped hover bordered :items="formattedAuditLogEntries" :fields="auditLogTableColumns"></b-table>
     </div>
   </div>
 </template>
@@ -78,6 +85,7 @@ button {
 <script>
 import axiox from "axios";
 import VueMarkdown from "vue-markdown";
+import { distanceInWordsStrict } from 'date-fns';
 
 export default {
   components: {
@@ -90,9 +98,12 @@ export default {
       pendingRequests: new Set([]),
       pendingVotes: [],
       pendingPosts: [],
+      auditLogEntries: [],
+      formattedAuditLogEntries: [],
       unreadMessages: [],
       formattedUnreadMessages: [],
       showNpcUnreadMessagesOnly: false,
+      showNpcAuditLog: false,
       unreadTableColumns: [
         {
           key: 'full_name',
@@ -109,9 +120,37 @@ export default {
           formatter: value => value ? 'No' : 'Yes'
         },
         {
+          key: 'oldest_message',
+          label: 'Oldest',
+          sortable: true,
+          formatter: timestamp => distanceInWordsStrict(new Date(), new Date(timestamp))
+        },
+        {
           key: 'unread_count',
           label: 'Count',
           sortable: true
+        },
+      ],
+      auditLogTableColumns: [
+        {
+          key: 'created_at',
+          label: 'Age',
+          sortable: true,
+          formatter: timestamp => distanceInWordsStrict(new Date(), new Date(timestamp))
+        },
+        {
+          key: 'type',
+          label: 'Type'
+        },
+        {
+          key: 'person',
+          label: 'Person',
+          formatter: person => person.full_name
+        },
+        {
+          key: 'hacker',
+          label: 'Hacker',
+          formatter: hacker => hacker ? hacker.full_name : hacker,
         },
       ],
     };
@@ -146,6 +185,7 @@ export default {
       this.fetchPendingVotes();
       this.fetchPendingsPosts();
       this.fetchUnreadMessages();
+      this.fetchAuditLog();
     },
     removeError(i) {
       this.errors.splice(i, 1);
@@ -177,6 +217,21 @@ export default {
       this.pendingRequests.delete("posts");
       this.updateIsLoading();
     },
+    async fetchAuditLog() {
+      this.pendingRequests.add("auditLog");
+      this.updateIsLoading();
+      await axios
+        .get("/log/audit?page=1&entries=150", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          this.auditLogEntries = response.data;
+          this.parseAuditLogEntries();
+        })
+        .catch(error => {
+          this.errors.push(`[${Date.now()}] ${error}`);
+        });
+      this.pendingRequests.delete("auditLog");
+      this.updateIsLoading();
+    },
     async fetchUnreadMessages() {
       this.pendingRequests.add("messages");
       this.updateIsLoading();
@@ -198,9 +253,11 @@ export default {
           full_name: cur.receiver.full_name,
           card_id: cur.receiver.card_id,
           is_character: cur.receiver.is_character,
-          unread_count: 0
+          unread_count: 0,
+          oldest_message: cur.created_at
         };
         obj.unread_count = obj.unread_count + 1;
+        if (obj.oldest_message > cur.created_at) obj.oldest_message = cur.created_at;
         prev[cur.target_person] = obj;
         return prev;
       }, {});
@@ -210,6 +267,9 @@ export default {
         .sort((a, b) => (a.unread_count > b.unread_count ? -1 : 1));
 
       this.formattedUnreadMessages = unreadMessages;
+    },
+    parseAuditLogEntries(showNpcAuditLog = this.showNpcAuditLog) {
+      this.formattedAuditLogEntries = this.auditLogEntries.filter(entry => showNpcAuditLog ? true : entry.person.is_character);
     },
     updateIsLoading() {
       this.isLoading = this.pendingRequests.size > 0;
