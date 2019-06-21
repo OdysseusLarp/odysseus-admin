@@ -67,6 +67,44 @@
       </p>
       <b-table striped hover bordered :items="formattedAuditLogEntries" :fields="auditLogTableColumns"></b-table>
     </div>
+    <div>
+        <h2>Person actions</h2>
+        <b-input-group prepend="Person ID" class="mt-3">
+          <b-form-input v-model="writtenPersonId" @keydown.enter.native="getPerson"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="outline-success" @click="getPerson">Get person</b-button>
+          </b-input-group-append>
+        </b-input-group>
+        <div v-if="selectedPerson" class="selected-person">
+          <h3>Selected person: {{ selectedPerson.full_name }}</h3>
+          <p>
+            Status: {{ selectedPerson.status }}
+          </p>
+          <p>
+            Is visible: {{ selectedPerson.is_visible }}
+          </p>
+          <p>
+            Is playble character: {{ selectedPerson.is_character }}
+          </p>
+          <div>
+            <b-input-group prepend="Person status" class="mt-3">
+              <b-form-input v-model="personStatus" @keydown.enter.native="setPersonStatus"></b-form-input>
+              <b-input-group-append>
+                <b-button variant="outline-success" @click="setPersonStatus">Set status</b-button>
+              </b-input-group-append>
+            </b-input-group>
+            <b-button class="action-button" variant="outline-warning" size="lg" v-b-modal.modal-kill-person>Kill this person</b-button>
+            <b-modal
+              id="modal-kill-person"
+              ref="modal"
+              title="Kill person"
+              @ok="killselectedPerson">
+              WARNING: Pressing OK will set {{ selectedPerson.full_name }} status to 'Deceased' and add a personal log entry 'Deceased'.
+            </b-modal>
+          </div>
+          <b-button class="action-button" variant="outline-warning" size="lg" @click="togglePersonVisible">Toggle person visibility</b-button>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -80,12 +118,19 @@ button {
 .card {
   margin: 15px;
 }
+.selected-person {
+  margin-top: 15px
+}
+.action-button {
+  margin: 12px auto;
+}
 </style>
 
 <script>
 import axiox from "axios";
 import VueMarkdown from "vue-markdown";
 import { distanceInWordsStrict } from 'date-fns';
+import { pushError } from '../helpers';
 
 export default {
   components: {
@@ -104,6 +149,9 @@ export default {
       formattedUnreadMessages: [],
       showNpcUnreadMessagesOnly: false,
       showNpcAuditLog: false,
+      writtenPersonId: '',
+      selectedPerson: null,
+      personStatus: '',
       unreadTableColumns: [
         {
           key: 'full_name',
@@ -190,6 +238,31 @@ export default {
     removeError(i) {
       this.errors.splice(i, 1);
     },
+    getPerson() {
+      this.selectedPerson = null;
+      if (!this.writtenPersonId) return;
+      axios.get(`/person/${this.writtenPersonId}`)
+        .then(res => {
+          this.selectedPerson = res.data;
+          if (!res.data) return;
+          this.personStatus = res.data.status;
+        })
+        .catch(err => pushError(this.errors, err));
+    },
+    togglePersonVisible() {
+      if (!this.selectedPerson) return;
+      const is_visible = !this.selectedPerson.is_visible;
+      this.patchPerson({ is_visible });
+    },
+    setPersonStatus() {
+      this.patchPerson({ status: this.personStatus.trim() });
+    },
+    patchPerson(patch) {
+      return axios.put(`/person/${this.selectedPerson.id}`, patch)
+        .then(() => {
+          this.getPerson();
+        }).catch(error => this.pushError(this.errors, error))
+    },
     async fetchPendingVotes() {
       this.pendingRequests.add("votes");
       await axios
@@ -246,6 +319,15 @@ export default {
         });
       this.pendingRequests.delete("messages");
       this.updateIsLoading();
+    },
+    killselectedPerson() {
+      if (!this.selectedPerson) return;
+      axios.put(`/person/${this.selectedPerson.id}/kill`)
+        .then(() => {
+          this.getPerson();
+          window.alert('Person was killed');
+        })
+        .catch(error => pushError(this.errors, error));
     },
     parseUnreadMessages(showNpcUnreadMessagesOnly = this.showNpcUnreadMessagesOnly) {
       const unreadSummary = this.unreadMessages.reduce((prev, cur) => {
