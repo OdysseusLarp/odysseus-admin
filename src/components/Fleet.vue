@@ -99,10 +99,10 @@
        </b-modal>
     </div>
     <div>
-      <h3>Move ships</h3>
+      <h3>Ship related actions</h3>
       <div class="move-ships-wrapper">
         <div class="move-ships-checkboxes">
-          <b-form-group label="Select ships to move">
+          <b-form-group label="Select ships">
             <b-form-checkbox-group
                 v-model="selectedShips"
                 :options="shipCheckboxes"
@@ -112,40 +112,60 @@
           </b-form-group>
       </div>
       <div class="move-ships-coordinates">
-        Enter coordinates
-        <b-input-group prepend="Paste grid name" class="mt-3 paste-grid-name">
-            <b-form-input v-model="pastedGridName"></b-form-input>
-            <b-input-group-append>
-              <b-button variant="outline-success" @click="parsePastedGridName">Parse</b-button>
-            </b-input-group-append>
-          </b-input-group>
-        <div class="coordinates-wrapper">
-          <b-form-input
-            v-model="sub_quadrant"
-            placeholder="Sub quadrant"
-            trim
-          ></b-form-input>
-          <b-form-input
-            v-model="sector"
-            placeholder="Sector"
-            trim
-          ></b-form-input>
-          <b-form-input
-            v-model="sub_sector"
-            placeholder="Sub Sector"
-            trim
-          ></b-form-input>
-          <b-form-input
-            v-model="planet_orbit"
-            placeholder="Planet orbit"
-            trim
-          ></b-form-input>
+        <div>
+          <h3>Move ship</h3>
+          Enter coordinates
+          <b-input-group prepend="Paste grid name" class="mt-3 paste-grid-name">
+              <b-form-input v-model="pastedGridName"></b-form-input>
+              <b-input-group-append>
+                <b-button variant="outline-success" @click="parsePastedGridName">Parse</b-button>
+              </b-input-group-append>
+            </b-input-group>
+          <div class="coordinates-wrapper">
+            <b-form-input
+              v-model="sub_quadrant"
+              placeholder="Sub quadrant"
+              trim
+            ></b-form-input>
+            <b-form-input
+              v-model="sector"
+              placeholder="Sector"
+              trim
+            ></b-form-input>
+            <b-form-input
+              v-model="sub_sector"
+              placeholder="Sub Sector"
+              trim
+            ></b-form-input>
+            <b-form-input
+              v-model="planet_orbit"
+              placeholder="Planet orbit"
+              trim
+            ></b-form-input>
+          </div>
+          <b-button variant="outline-primary" @click="validateCoordinates">Validate coordinates</b-button>
+          <p>
+            {{ coordinateStatus }}
+          </p>
+          <b-button variant="outline-warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
         </div>
-        <b-button variant="outline-primary" @click="validateCoordinates">Validate coordinates</b-button>
-        <p>
-          {{ coordinateStatus }}
-        </p>
-        <b-button variant="outline-warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
+        <hr>
+        <div>
+          <h3>Destroy ships</h3>
+            <div>
+              <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
+              <b-modal
+                id="modal-destroy-ships"
+                ref="modal"
+                title="Destroy selected ships"
+                @ok="handleDestroyShips">
+                <p>WARNING: Pressing OK will destroy the following ships and set status 'Killed in action' for everyone on board:</p>
+                <ul>
+                  <li v-for="ship in selectedShips" v-bind:key="ship">{{ ship }}</li>
+                </ul>
+              </b-modal>
+          </div>
+        </div>
       </div>
     </div>
     </div>
@@ -258,6 +278,9 @@ export default {
     handlePersonsVisibleOk() {
       this.setPersonsVisible();
     },
+    handleDestroyShips() {
+      this.destroyShips();
+    },
     fetchData() {
       this.fetchFleet();
     },
@@ -317,6 +340,18 @@ export default {
         })
         .catch(error => {
           pushError(this.errors, error);
+        });
+    },
+    async destroyShips() {
+      const shipIds = this.selectedShips;
+      Promise.all(shipIds.map(id => axios.post(`/fleet/${id}/destroy`)))
+        .then(() => {
+          window.alert('Ships destroyed');
+          this.selectedShips = [];
+        })
+        .catch(error => {
+          pushError(this.errors, error);
+          window.alert('Some ships failed to destroy, check error msg on top of page and see which ships failed');
         });
     },
     patchMetadata(key_path, value) {
