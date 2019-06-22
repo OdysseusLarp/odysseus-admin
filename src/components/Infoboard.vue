@@ -71,7 +71,7 @@
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 button {
   margin-right: 15px;
 }

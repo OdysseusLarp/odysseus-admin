@@ -6,16 +6,16 @@
         :hover="true"
         @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
-    <b-button v-b-modal.new-log-entry-modal size="sm" class="my-2 my-sm-0">Add new log entry</b-button>
+    <b-button v-b-modal.new-log-entry-modal size="sm" variant="primary" class="my-2 my-sm-0">Add new log entry</b-button>
     <div v-if="!!logs.length">
       <b-card v-for="logEntry in logs" :key="logEntry.id"
           :class="'card ' + logEntry.type"
           :title="logEntry.type"
           :sub-title="logEntry.created_at">
+          <b-button variant="outline-danger" class="delete-log-entry" @click="deleteLogEntry(logEntry.id)">Delete entry</b-button>
           <p class="card-text">
             {{ logEntry.message }}
           </p>
-          <b-button variant="danger" @click="deleteLogEntry(logEntry.id)">Delete entry</b-button>
       </b-card>
     </div>
   <div>
@@ -51,6 +51,10 @@
 </template>
 
 <style lang="scss">
+$error-color: #dc3545;
+$info-color: #007bff;
+$success-color: #28a745;
+$warning-color: #ffc107;
 button {
   margin-right: 15px;
 }
@@ -61,21 +65,32 @@ button {
   margin: 15px;
 }
 .SUCCESS {
-  background-color: #f0ffea;
+  border: 1px solid $success-color;
+  background: rgba($success-color, 0.05);
 }
 .WARNING {
-  background: #ffffb0;
+  border: 1px solid $warning-color;
+  background: rgba($warning-color, 0.05);
 }
 .INFO {
-  background: #def1ff;
+  border: 1px solid $info-color;
+  background: rgba($info-color, 0.05);
 }
 .ERROR {
-  background: #ffe8eb;
+  border: 1px solid $error-color;
+  background: rgba($error-color, 0.05);
+}
+.delete-log-entry {
+  position: absolute;
+  top: 15px;
+  right: 0;
+  background: #fff;
 }
 </style>
 
 <script>
 import axiox from "axios";
+import { format } from 'date-fns';
 
 export default {
   components: {},
@@ -159,7 +174,7 @@ export default {
         .then(response => {
           this.logs = (response.data || []).sort(
             (a, b) => (a.created_at < b.created_at ? 1 : -1)
-          );
+          ).map(logEntry => ({ ...logEntry, created_at: format(new Date(logEntry.created_at), 'dddd HH:mm:ss') }));
         })
         .catch(error => {
           this.errors.push("" + error);
