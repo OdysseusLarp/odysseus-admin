@@ -77,9 +77,9 @@
       </div>
     </b-collapse>
     <h2>Actions</h2>
-    <b-button class="batch-button" variant="outline-primary" size="lg" @click="emitRefreshMap" >Refresh starmap</b-button>
+    <b-button class="batch-button" variant="outline-primary" size="md" @click="emitRefreshMap" >Refresh starmap</b-button>
     <div>
-      <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
+      <b-button class="batch-button" variant="warning" size="md" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
        <b-modal
         id="modal-set-ships-visible"
         ref="modal"
@@ -89,7 +89,7 @@
        </b-modal>
     </div>
     <div>
-      <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-set-persons-visible>Make all persons visible</b-button>
+      <b-button class="batch-button" variant="warning" size="md" v-b-modal.modal-set-persons-visible>Make all persons visible</b-button>
        <b-modal
         id="modal-set-persons-visible"
         ref="modal"
@@ -153,7 +153,7 @@
         <div>
           <h3>Destroy ships</h3>
             <div>
-              <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
+              <b-button class="batch-button" variant="warning" size="md" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
               <b-modal
                 id="modal-destroy-ships"
                 ref="modal"
