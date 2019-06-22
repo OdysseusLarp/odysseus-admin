@@ -16,9 +16,9 @@
                       :value="currentPriority">
         </b-form-select>
       </b-form-group>
-      <b-button size="sm" class="my-2 my-sm-0" @click="updatePriority">Change priority</b-button>
     </b-form>
-    <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" entry="'newInfoboard'" @click="sendInfo(newInfoboard)">Add new infoboard entry</b-button>
+    <b-button size="sm" class="my-2 my-sm-0" variant="primary" @click="updatePriority">Update current priority</b-button>
+    <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" variant="success" entry="'newInfoboard'" @click="sendInfo(newInfoboard)">Add new infoboard entry</b-button>
     <div v-if="!!infoboards.length">
       <b-card v-for="(infoboard,i) in infoboards" :key="i" :class="'card'"
           :title="infoboard.title"
@@ -28,17 +28,15 @@
           </p>
 	  <p>Priority: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
 	  <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" entry="'infoboard'" @click="sendInfo(infoboard)">Edit infoboard entry</b-button>
-          <b-button variant="danger" @click="deleteInfoboardEntry(infoboard.id)">Delete entry</b-button>
+    <b-button size="sm" variant="danger" @click="deleteInfoboardEntry(infoboard.id)">Delete entry</b-button>
       </b-card>
     </div>
   <div>
     <b-modal id="infoboard-entry-modal" title="Infoboard entry" @ok="handleOk">
       <b-form>
-        <b-form-group label="Enabled" label-for="infoboardEnabled">
-        <input name="selectedEntry.id" :value="selectedEntry.id" type="hidden" />
-	  <b-form-checkbox id="infoboardEnabled"
-	                v-model="selectedEntry.enabled"
-			unchecked-value="false">
+        <b-form-group>
+	        <b-form-checkbox id="infoboardEnabled" v-model="selectedEntry.enabled" unchecked-value="false">
+            Enabled
           </b-form-checkbox>
         </b-form-group>
         <b-form-group label="Priority" label-for="infoboardPriority">
@@ -100,6 +98,8 @@ button {
 <script>
 import axiox from "axios";
 
+const emptyEntry = { priority: 1, title: "", body: "", enabled: true };
+
 export default {
   components: {},
   data() {
@@ -109,8 +109,8 @@ export default {
       infoboards: [],
       infoboardPriorities: [1, 2, 3],
       currentPriority: 0,
-      newInfoboard: { priority: 1, title: "", body: "", enabled: true },
-      selectedEntry: { priority: 1, title: "", body: "", enabled: true }
+      newInfoboard: { ...emptyEntry },
+      selectedEntry: { ...emptyEntry }
     };
   },
 
@@ -147,10 +147,8 @@ export default {
       await axios
         .put(url, entry, { baseURL: this.$store.state.backend.uri })
         .then(res => {
-          this.newInfoboardPriority = 1;
-          this.newInfoboardTitle = "";
-          this.newInfoboardBody = "";
-          this.selectedEntry = this.newInfoboard;
+          this.selectedEntry = { ...emptyEntry };
+          this.newInfoboard = { ...emptyEntry };
           this.fetchInfoboardEntries();
         })
         .catch(err => {
