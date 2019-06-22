@@ -79,7 +79,7 @@
     <h2>Actions</h2>
     <b-button class="batch-button" variant="outline-primary" size="lg" @click="emitRefreshMap" >Refresh starmap</b-button>
     <div>
-      <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
+      <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-set-ships-visible>Make all ships visible</b-button>
        <b-modal
         id="modal-set-ships-visible"
         ref="modal"
@@ -89,7 +89,7 @@
        </b-modal>
     </div>
     <div>
-      <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-set-persons-visible>Make all persons visible</b-button>
+      <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-set-persons-visible>Make all persons visible</b-button>
        <b-modal
         id="modal-set-persons-visible"
         ref="modal"
@@ -147,13 +147,13 @@
           <p>
             {{ coordinateStatus }}
           </p>
-          <b-button variant="outline-warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
+          <b-button variant="warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
         </div>
         <hr>
         <div>
           <h3>Destroy ships</h3>
             <div>
-              <b-button class="batch-button" variant="outline-warning" size="lg" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
+              <b-button class="batch-button" variant="warning" size="lg" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
               <b-modal
                 id="modal-destroy-ships"
                 ref="modal"
@@ -290,6 +290,9 @@ export default {
     removeError(i) {
       this.errors.splice(i, 1);
     },
+    handleError(error) {
+      pushError(this.errors, error, $notify);
+    },
     parsePastedGridName() {
       const gridName = this.pastedGridName.split('-').map(s => s.trim());
       if (gridName.length !== 4) return pushError(this.errors, 'Invalid grid format was copypasted');
@@ -315,9 +318,7 @@ export default {
          this.coordinateStatus = response.data.message || 'Coordinates are OK';
          this.areCoordinatesValid = response.data.isValid;
         })
-        .catch(error => {
-          pushError(this.errors, error);
-        });
+        .catch(this.handleError);
     },
     async moveShips() {
       const shipIds = this.selectedShips;
@@ -336,22 +337,32 @@ export default {
          this.coordinateStatus = '';
          this.areCoordinatesValid = false;
          this.selectedShips = [];
-         window.alert('Ships were moved');
+         this.$notify({
+            title: 'Success',
+            text: 'Ships moved',
+            type: "success",
+          });
         })
-        .catch(error => {
-          pushError(this.errors, error);
-        });
+        .catch(this.handleError);
     },
     async destroyShips() {
       const shipIds = this.selectedShips;
       Promise.all(shipIds.map(id => axios.post(`/fleet/${id}/destroy`)))
         .then(() => {
-          window.alert('Ships destroyed');
+          this.$notify({
+            title: 'Success',
+            text: 'Ships destroyed',
+            type: "success",
+          });
           this.selectedShips = [];
         })
         .catch(error => {
           pushError(this.errors, error);
-          window.alert('Some ships failed to destroy, check error msg on top of page and see which ships failed');
+          this.$notify({
+            title: 'Error',
+            text: 'Some ships failed to destroy, check error msg on top of page and see which ships failed',
+            type: "success",
+          });
         });
     },
     patchMetadata(key_path, value) {
@@ -360,10 +371,7 @@ export default {
         return pushError(this.errors, `Value provided for ${key_path} is not an integer`);
       axios.patch(`/fleet/odysseus/metadata`, { key_path, value: numericValue })
         .then(() => this.fetchFleet())
-        .catch(err => {
-          console.log('error patching', err);
-          pushError(this.errors, err);
-        });
+        .catch(this.handleError);
     },
     async fetchFleet() {
       this.isLoading = true;
@@ -388,30 +396,34 @@ export default {
           this.gridScanMin = get(this.odysseus, 'metadata.grid_scan_duration.min_seconds', 0);
           this.gridScanMax = get(this.odysseus, 'metadata.grid_scan_duration.max_seconds', 0);
         })
-        .catch(error => {
-          pushError(this.errors, error);
-        });
+        .catch(this.handleError);
       this.isLoading = false;
     },
     async setShipsVisible() {
       await axios
         .put("/fleet/set-visible", { baseURL: this.$store.state.backend.uri })
         .then(response => {
-          window.alert('Ships set to visible');
+          this.$notify({
+            title: 'Success',
+            text: 'Ships set to visible',
+            type: "success",
+          });
         })
         .catch(error => {
-          pushError(this.errors, err);
+          pushError(this.errors, err, this.$notify);
         });
     },
     async setPersonsVisible() {
       await axios
         .put("/person/set-visible", { baseURL: this.$store.state.backend.uri })
         .then(response => {
-          window.alert('Persons set to visible');
+          this.$notify({
+            title: 'Success',
+            text: 'Persons set to visible',
+            type: "success",
+          });
         })
-        .catch(error => {
-          pushError(this.errors, error);
-        });
+        .catch(this.handleError);
     },
     async emitRefreshMap() {
       await axios
@@ -419,9 +431,7 @@ export default {
         .then(response => {
           window.alert('Emitted refreshMap event');
         })
-        .catch(error => {
-          pushError(this.errors, error);
-        });
+        .catch(this.handleError);
     }
   }
 };

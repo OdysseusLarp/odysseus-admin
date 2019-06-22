@@ -67,6 +67,7 @@
       </p>
       <b-table striped hover bordered :items="formattedAuditLogEntries" :fields="auditLogTableColumns"></b-table>
     </div>
+    <hr>
     <div>
         <h2>Person actions</h2>
         <b-input-group prepend="Person ID" class="mt-3">
@@ -77,23 +78,31 @@
         </b-input-group>
         <div v-if="selectedPerson" class="selected-person">
           <h3>Selected person: {{ selectedPerson.full_name }}</h3>
-          <p>
-            Status: {{ selectedPerson.status }}
-          </p>
+          <b-input-group prepend="Person status" class="mt-3">
+            <b-form-input v-model="personStatus" @keydown.enter.native="setPersonStatus"></b-form-input>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonStatus">Set status</b-button>
+            </b-input-group-append>
+          </b-input-group>
           <p>
             Is visible: {{ selectedPerson.is_visible }}
           </p>
           <p>
             Is playble character: {{ selectedPerson.is_character }}
           </p>
+          <div class="person-groups-checkboxes">
+            <b-form-group label="Person groups">
+              <b-form-checkbox-group
+                  v-model="personGroups"
+                  :options="allGroups"
+                  name="flavour-1a"
+                  stacked
+                ></b-form-checkbox-group>
+            </b-form-group>
+            <b-button class="action-button" variant="primary" size="md" @click="updateGroups">Update groups</b-button>
+          </div>
           <div>
-            <b-input-group prepend="Person status" class="mt-3">
-              <b-form-input v-model="personStatus" @keydown.enter.native="setPersonStatus"></b-form-input>
-              <b-input-group-append>
-                <b-button variant="outline-success" @click="setPersonStatus">Set status</b-button>
-              </b-input-group-append>
-            </b-input-group>
-            <b-button class="action-button" variant="outline-warning" size="lg" v-b-modal.modal-kill-person>Kill this person</b-button>
+            <b-button class="action-button" variant="warning" size="md" v-b-modal.modal-kill-person>Kill this person</b-button>
             <b-modal
               id="modal-kill-person"
               ref="modal"
@@ -102,7 +111,7 @@
               WARNING: Pressing OK will set {{ selectedPerson.full_name }} status to 'Deceased' and add a personal log entry 'Deceased'.
             </b-modal>
           </div>
-          <b-button class="action-button" variant="outline-warning" size="lg" @click="togglePersonVisible">Toggle person visibility</b-button>
+          <b-button class="action-button" variant="warning" size="md" @click="togglePersonVisible">Toggle person visibility</b-button>
         </div>
     </div>
   </div>
@@ -130,6 +139,7 @@ button {
 import axiox from "axios";
 import VueMarkdown from "vue-markdown";
 import { distanceInWordsStrict } from 'date-fns';
+import { difference } from 'lodash';
 import { pushError } from '../helpers';
 
 export default {
@@ -146,6 +156,8 @@ export default {
       auditLogEntries: [],
       formattedAuditLogEntries: [],
       unreadMessages: [],
+      allGroups: [],
+      personGroups: [],
       formattedUnreadMessages: [],
       showNpcUnreadMessagesOnly: false,
       showNpcAuditLog: false,
@@ -234,34 +246,80 @@ export default {
       this.fetchPendingsPosts();
       this.fetchUnreadMessages();
       this.fetchAuditLog();
+      this.fetchAllGroups();
     },
     removeError(i) {
       this.errors.splice(i, 1);
     },
+    handleError(error) {
+      pushError(this.errors, error, this.$notify);
+    },
     getPerson() {
       this.selectedPerson = null;
+      this.personGroups = [];
       if (!this.writtenPersonId) return;
       axios.get(`/person/${this.writtenPersonId}`)
         .then(res => {
           this.selectedPerson = res.data;
           if (!res.data) return;
           this.personStatus = res.data.status;
+          this.personGroups = res.data.groups;
         })
-        .catch(err => pushError(this.errors, err));
+        .catch(err => pushError(this.errors, err, this.$notify));
     },
     togglePersonVisible() {
       if (!this.selectedPerson) return;
       const is_visible = !this.selectedPerson.is_visible;
-      this.patchPerson({ is_visible });
+      this.patchPerson({ is_visible }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person visibility set to ${is_visible ? 'visible' : 'hidden'}`,
+        type: "success",
+      }));
     },
     setPersonStatus() {
-      this.patchPerson({ status: this.personStatus.trim() });
+      this.patchPerson({ status: this.personStatus.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: 'Status updated',
+        type: "success",
+      }));
     },
     patchPerson(patch) {
       return axios.put(`/person/${this.selectedPerson.id}`, patch)
         .then(() => {
           this.getPerson();
-        }).catch(error => this.pushError(this.errors, error))
+        }).catch(error => {
+          this.handleError(error);
+          throw error;
+        });
+    },
+    updateGroups() {
+      if (!this.selectedPerson) return;
+      const oldGroups = this.selectedPerson.groups;
+      const groupsToAdd = difference(this.personGroups, oldGroups);
+      const groupsToDelete = difference(oldGroups, this.personGroups);
+      const personId = this.selectedPerson.id;
+      Promise.all([
+        ...groupsToAdd.map(g => axios.put(`/person/${personId}/group/${g}`)),
+        ...groupsToDelete.map(g => axios.delete(`/person/${personId}/group/${g}`)),
+      ]).then(() => {
+        this.getPerson();
+        this.$notify({
+          title: 'Success',
+          text: 'Person groups updated',
+          type: "success",
+        });
+      }).catch(this.handleError);
+    },
+    async fetchAllGroups() {
+      this.pendingRequests.add("groups");
+      await axios
+        .get("/person/groups", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          this.allGroups = response.data;
+        })
+        .catch(this.handleError);
+      this.pendingRequests.delete("groups");
+      this.updateIsLoading();
     },
     async fetchPendingVotes() {
       this.pendingRequests.add("votes");
@@ -270,9 +328,7 @@ export default {
         .then(response => {
           this.pendingVotes = response.data;
         })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        .catch(this.handleError);
       this.pendingRequests.delete("votes");
       this.updateIsLoading();
     },
@@ -283,10 +339,7 @@ export default {
         .get("/post?status=PENDING", { baseURL: this.$store.state.backend.uri })
         .then(response => {
           this.pendingPosts = response.data;
-        })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        }).catch(this.handleError);
       this.pendingRequests.delete("posts");
       this.updateIsLoading();
     },
@@ -298,10 +351,7 @@ export default {
         .then(response => {
           this.auditLogEntries = response.data;
           this.parseAuditLogEntries();
-        })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        }).catch(this.handleError);
       this.pendingRequests.delete("auditLog");
       this.updateIsLoading();
     },
@@ -313,10 +363,7 @@ export default {
         .then(response => {
           this.unreadMessages = response.data;
           this.parseUnreadMessages();
-        })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        }).catch(this.handleError);
       this.pendingRequests.delete("messages");
       this.updateIsLoading();
     },
@@ -325,9 +372,13 @@ export default {
       axios.put(`/person/${this.selectedPerson.id}/kill`)
         .then(() => {
           this.getPerson();
-          window.alert('Person was killed');
+          this.$notify({
+            title: 'Success',
+            text: 'Person was killed',
+            type: "success",
+          });
         })
-        .catch(error => pushError(this.errors, error));
+        .catch(this.handleError);
     },
     parseUnreadMessages(showNpcUnreadMessagesOnly = this.showNpcUnreadMessagesOnly) {
       const unreadSummary = this.unreadMessages.reduce((prev, cur) => {
@@ -366,10 +417,7 @@ export default {
       })
         .then(r => {
           this.fetchData();
-        })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        }).catch(this.handleError);
     },
     updatePostStatus(id, status) {
       axios({
@@ -380,10 +428,7 @@ export default {
       })
         .then(r => {
           this.fetchData();
-        })
-        .catch(error => {
-          this.errors.push(`[${Date.now()}] ${error}`);
-        });
+        }).catch(this.handleError);
     }
   }
 };
