@@ -103,6 +103,13 @@
         <span class="color danger">Dangerous action</span>
       </div>
 
+      <h2>Initialization</h2>
+      <p>Initialize the jump drive to a specific duration since the last jump start. To be used once when
+        setting up the game.</p>
+      <p>It asks how many minutes has passed since the last jump start, then sets the jump drive to
+        'cooldown' state with proper last jump time. Jump cycle 2h 47min = 167 minutes, cooldown time 2h 15min = 135 minutes.</p>
+      <b-button variant="danger" @click="initialize">Initialize jump drive</b-button>
+
       <h2>Documentation</h2>
       <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vSLFz4jzNFivHEenNnMWIsb6VY2h7Y6FGpQ5Yn-tzr7pkt_lZg6kdWNgRFVAW9rwLXdNEIfdDjCb584/embed?start=false&loop=false&delayms=3000#slide=id.g4d32841109_0_0" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
       <p><a href="https://docs.google.com/presentation/d/1nbXQE9N10Zm7uS45eW4R1VvYU4zZQ0PZbRovUq7bA5o/edit#slide=id.g4d32841109_0_0" target="_blank">Open in Google Slides</a></p>
@@ -260,6 +267,21 @@ export default {
         });
       }
     },
+    initialize() {
+      const minutes = prompt("Duration IN MINUTES since the previous jump:")
+      if (minutes && minutes.match(/^[0-9]+$/)) {
+        const mins = parseInt(minutes, 10)
+        const last_jump = Date.now() - mins * 60 * 1000
+        const state = {
+          status: 'cooldown',
+          last_jump,
+          jump_at: 0,
+          breaking_jump: true,
+          minor_breaking_jump: true,  // first jump is always minor-breaking
+        }
+        this.write(state)
+      }
+    }
   },
 };
 </script>
