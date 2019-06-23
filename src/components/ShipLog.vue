@@ -90,7 +90,7 @@ button {
 
 <script>
 import axiox from "axios";
-import { format } from 'date-fns';
+import { format, distanceInWordsToNow } from 'date-fns';
 
 export default {
   components: {},
@@ -172,9 +172,14 @@ export default {
       await axios
         .get("/log", { baseURL: this.$store.state.backend.uri })
         .then(response => {
-          this.logs = (response.data || []).sort(
-            (a, b) => (a.created_at < b.created_at ? 1 : -1)
-          ).map(logEntry => ({ ...logEntry, created_at: format(new Date(logEntry.created_at), 'dddd HH:mm:ss') }));
+          this.logs = (response.data || [])
+            .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+            .map(logEntry => ({
+              ...logEntry,
+              created_at:
+                format(new Date(logEntry.created_at), "dddd HH:mm:ss") +
+                ` (${distanceInWordsToNow(logEntry.created_at)} ago)`
+            }));
         })
         .catch(error => {
           this.errors.push("" + error);
