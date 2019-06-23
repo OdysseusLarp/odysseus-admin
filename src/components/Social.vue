@@ -77,26 +77,25 @@
           </b-input-group-append>
         </b-input-group>
         <div v-if="selectedPerson" class="selected-person">
-          <h3>Selected person: {{ selectedPerson.full_name }}</h3>
+          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC)</span></h3>
           <b-input-group prepend="Person status" class="mt-3">
-            <b-form-input v-model="personStatus" @keydown.enter.native="setPersonStatus"></b-form-input>
+            <b-form-select v-model="personStatus" :options="personStatusOptions"></b-form-select>
             <b-input-group-append>
               <b-button variant="outline-success" @click="setPersonStatus">Set status</b-button>
             </b-input-group-append>
           </b-input-group>
-          <p>
-            Is visible: {{ selectedPerson.is_visible }}
-          </p>
-          <p>
-            Is playble character: {{ selectedPerson.is_character }}
-          </p>
+          <b-input-group prepend="Person visibility" class="mt-3">
+            <b-form-select v-model="personIsVisible" :options="personVisibleOptions"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonVisibility">Set visibility</b-button>
+            </b-input-group-append>
+          </b-input-group>
           <div class="person-groups-checkboxes">
             <b-form-group label="Person groups">
               <b-form-checkbox-group
                   v-model="personGroups"
                   :options="allGroups"
                   name="flavour-1a"
-                  stacked
                 ></b-form-checkbox-group>
             </b-form-group>
             <b-button class="action-button" variant="primary" size="md" @click="updateGroups">Update groups</b-button>
@@ -111,7 +110,6 @@
               WARNING: Pressing OK will set {{ selectedPerson.full_name }} status to 'Deceased' and add a personal log entry 'Deceased'.
             </b-modal>
           </div>
-          <b-button class="action-button" variant="warning" size="md" @click="togglePersonVisible">Toggle person visibility</b-button>
         </div>
     </div>
   </div>
@@ -132,6 +130,13 @@ button {
 }
 .action-button {
   margin: 12px auto;
+}
+.person-groups-checkboxes {
+  margin-top: 15px;
+
+  legend {
+    font-weight: bold;
+  }
 }
 </style>
 
@@ -164,6 +169,7 @@ export default {
       writtenPersonId: '',
       selectedPerson: null,
       personStatus: '',
+      personIsVisible: false,
       unreadTableColumns: [
         {
           key: 'full_name',
@@ -213,6 +219,17 @@ export default {
           formatter: hacker => hacker ? hacker.full_name : hacker,
         },
       ],
+      personStatusOptions: [
+          'Killed in action',
+          'Missing in action',
+          'Present and accounted for',
+          'Unknown',
+          'Deceased',
+      ],
+      personVisibleOptions: [
+        { value: true, text: 'Visible' },
+        { value: false, text: 'Hidden' },
+      ]
     };
   },
 
@@ -264,17 +281,20 @@ export default {
           if (!res.data) return;
           this.personStatus = res.data.status;
           this.personGroups = res.data.groups;
+          this.personIsVisible = res.data.is_visible;
         })
         .catch(err => pushError(this.errors, err, this.$notify));
     },
-    togglePersonVisible() {
+    setPersonVisibility() {
       if (!this.selectedPerson) return;
-      const is_visible = !this.selectedPerson.is_visible;
-      this.patchPerson({ is_visible }).then(() => this.$notify({
-        title: 'Success',
-        text: `Person visibility set to ${is_visible ? 'visible' : 'hidden'}`,
-        type: "success",
-      }));
+      this.patchPerson({ is_visible: this.personIsVisible }).then(() => {
+        this.$notify({
+          title: 'Success',
+          text: `Person visibility set to ${this.personIsVisible ? 'visible' : 'hidden'}`,
+          type: "success",
+        });
+        this.getPerson();
+      });
     },
     setPersonStatus() {
       this.patchPerson({ status: this.personStatus.trim() }).then(() => this.$notify({
