@@ -20,6 +20,14 @@
             </b-input-group>
           </div>
           <div>
+            <b-input-group prepend="Jump crystal count" class="mt-3">
+              <b-form-input v-model="jumpCrystalCount"></b-form-input>
+              <b-input-group-append>
+                <b-button variant="outline-success" @click="patchMetadata('jump_crystal_count', jumpCrystalCount)">Patch value</b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </div>
+          <div>
             <b-input-group prepend="Jump range (grid)" class="mt-3">
               <b-form-input v-model="jumpRange"></b-form-input>
               <b-input-group-append>
@@ -234,6 +242,7 @@ export default {
       fetchTimestamp: Date.now(),
       fetchAgo: 0,
       probeCount: 0,
+      jumpCrystalCount: 0,
       jumpRange: 0,
       scanRange: 0,
       objectScanMin: 0,
@@ -391,6 +400,7 @@ export default {
           this.jumpRange = get(this.odysseus, 'metadata.jump_range', 0);
           this.scanRange = get(this.odysseus, 'metadata.scan_range', 0);
           this.probeCount = get(this.odysseus, 'metadata.probe_count', 0);
+          this.jumpCrystalCount = get(this.odysseus, 'metadata.jump_crystal_count', 0);
           this.objectScanMin = get(this.odysseus, 'metadata.object_scan_duration.min_seconds', 0);
           this.objectScanMax = get(this.odysseus, 'metadata.object_scan_duration.max_seconds', 0);
           this.gridScanMin = get(this.odysseus, 'metadata.grid_scan_duration.min_seconds', 0);
