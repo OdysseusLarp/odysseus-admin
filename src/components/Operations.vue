@@ -134,7 +134,7 @@ export default {
     async fetchOperations() {
       this.isLoading = true;
       await axios
-        .get("/operation?relations=true")
+        .get("/operation?relations=true&include_complete=true")
         .then(response => {
             const operations = response.data || [];
             this.operations = operations.map(o => {
