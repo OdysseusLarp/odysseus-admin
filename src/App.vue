@@ -11,6 +11,7 @@
           <b-nav-item to="/fleet">Fleet</b-nav-item>
           <b-nav-item to="/ship-log">Ship log</b-nav-item>
           <b-nav-item to="/infoboard">Infoboard</b-nav-item>
+          <b-nav-item to="/operations">Operations</b-nav-item>
           <b-nav-item to="/emptyepsilon">Empty Epsilon</b-nav-item>
           <b-nav-item to="/dmx">DMX</b-nav-item>
         </b-navbar-nav>
