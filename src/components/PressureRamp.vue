@@ -57,5 +57,8 @@ export default {
 			this.updatePressure()
 		},
 	},
+	created () {
+		this.updatePressure()
+	},
 };
 </script>

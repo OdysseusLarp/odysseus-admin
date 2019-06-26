@@ -1,32 +1,25 @@
 <template>
 	<b-container fluid class="my-4">
-		<h2>{{box.title || boxId}}</h2>
+		<h2>{{boxId}}</h2>
 		<ul>
 			<li>Status: <b>{{box.status}}</b></li>
+			<li>Last command: {{box.last_command || 'none'}} ({{timeString(box.last_command_at)}})</li>
 			<li>Pressure: <pressureRamp :rawPressure="box.pressure" :curve="box.config.pressure_curve"/></li>
 			<li>Countdown: <countdown :target="box.countdown_to"/></li>
+			<li>Linked task: {{linkedBox.id}} (status: {{linkedBox.status}})</li>
 		</ul>
 
-		Actions:
 		<div class="button-group">
-			<b-button variant="success" :disabled="!canPressurize" @click="setStatus('pressurizing')">Pressurize and open</b-button>
-			<b-button variant="success" :disabled="!canDepressurize" @click="setStatus('depressurizing')">Close and depressurize</b-button>
+			<b-button variant="success" @click="sendCommand('open')">Open</b-button>
+			<b-button variant="success" @click="sendCommand('close')">Close</b-button>
+			<b-button variant="success" @click="sendCommand('pressurize')">Pressurize</b-button>
+			<b-button variant="success" @click="sendCommand('depressurize')">Depressurize</b-button>
 		</div>
 
-		Force state:
-		<div class="button-group">
-			<b-button variant="warning" :disabled="box.status === 'open'" @click="setStatus('open')">Open</b-button>
-			<b-button variant="warning" :disabled="box.status === 'closed'" @click="setStatus('closed')">Closed</b-button>
-			<b-button variant="warning" :disabled="box.status === 'vacuum'" @click="setStatus('vacuum')">Vacuum</b-button>
-		</div>
 	</b-container>
 </template>
 
 <style lang="scss">
-.button-group {
-	margin-top: 0;
-	margin-bottom: 1em;
-}
 </style>
 
 <script>
@@ -41,21 +34,27 @@ export default {
 	},
 	computed: {
 		box () {
-			return this.$store.state.dataBlobs.find(e => e.type === 'box' && e.id === this.boxId) || DEFAULT_BOX
+			return this.getBox(this.boxId) || DEFAULT_BOX
 		},
-		canPressurize () {
-      return this.box.status !== 'open' && this.box.status !== 'pressurizing'
-    },
-    canDepressurize () {
-      return this.box.status !== 'vacuum' && this.box.status !== 'depressurizing'
-    },
+		linkedBox () {
+			const boxId = this.box.config.linked_task_id
+			if (!boxId) return { id: 'none', status: 'n/a' }
+			return this.getBox() || { id: boxId, status: 'NOT FOUND' }
+		},
   },
 	methods: {
-		setStatus (status) {
-			console.log(`Setting airlock ${this.boxId} status to ${status}...`)
-			axios.patch(`/data/box/${this.boxId}?force=true`, {status: status})
-				.then(() => console.log(`Airlock ${this.boxId} status set to ${status}`))
-				.catch((err) => console.log(`Failed to set status airlock ${this.boxId} to ${status}:`, err))
+		getBox (boxId) {
+			return this.$store.state.dataBlobs.find(e => e.type === 'box' && e.id === boxId)
+		},
+		sendCommand (command) {
+			console.log(`Send command ${command} to ${this.boxId}...`)
+			axios.patch(`/data/box/${this.boxId}?force=true`, {command: command})
+				.then(() => console.log(`Command ${command} sent to ${this.boxId}`))
+				.catch((err) => console.log(`Command ${command} to ${this.boxId} failed:`, err))
+		},
+		timeString (timestamp) {
+			if (!timestamp) return 'never'
+			return 'at ' + new Date(timestamp).toISOString()
 		},
 	},
 };
