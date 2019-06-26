@@ -3,9 +3,8 @@
 		<h2>{{box.title || boxId}}</h2>
 		<ul>
 			<li>Status: <b>{{box.status}}</b></li>
-			<li>Pressure: <pressureRamp :rawPressure="box.pressure"/></li>
+			<li>Pressure: <pressureRamp :rawPressure="box.pressure" :curve="box.config.pressure_curve"/></li>
 			<li>Countdown: <countdown :target="box.countdown_to"/></li>
-			<li>Status: {{box.status}}</li>
 		</ul>
 
 		Actions:
