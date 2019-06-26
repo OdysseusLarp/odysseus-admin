@@ -9,6 +9,7 @@ import Fleet from "./views/Fleet.vue";
 import Infoboard from "./views/Infoboard.vue";
 import Operations from './views/Operations.vue';
 import EmptyEpsilon from "./views/EmptyEpsilon.vue";
+import Airlocks from './views/Airlocks.vue';
 import Dmx from './views/Dmx.vue';
 
 Vue.use(VueRouter);
@@ -59,6 +60,11 @@ export default new VueRouter({
       path: "/emptyepsilon",
       name: "emptyepsilon",
       component: EmptyEpsilon
+    },
+    {
+      path: "/airlocks",
+      name: "airlocks",
+      component: Airlocks
     },
     {
       path: "/dmx",

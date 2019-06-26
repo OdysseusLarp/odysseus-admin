@@ -13,6 +13,7 @@
           <b-nav-item to="/infoboard">Infoboard</b-nav-item>
           <b-nav-item to="/operations">Operations</b-nav-item>
           <b-nav-item to="/emptyepsilon">Empty Epsilon</b-nav-item>
+          <b-nav-item to="/airlocks">Airlocks</b-nav-item>
           <b-nav-item to="/dmx">DMX</b-nav-item>
         </b-navbar-nav>
 
