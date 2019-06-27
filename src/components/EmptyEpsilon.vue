@@ -34,7 +34,7 @@
                 </h2>
                 <b-button v-if="!shipMetadata.ee_sync_enabled" variant="success" @click="toggleSynchronization(true)">Enable state synchronization</b-button>
                 <b-button v-else variant="danger" @click="toggleSynchronization(false)">Disable state synchronization</b-button>
-                <b-button v-if="!shipMetadata.ee_sync_enabled" variant="primary" @click="pushFullGameState()">Push current state to EE</b-button>
+                <b-button v-if="!shipMetadata.ee_sync_enabled" variant="primary" :disabled="isPushGameStatePending" @click="pushFullGameState()">{{ isPushGameStatePending ? `${pushGameStateProgress} / 24` : 'Push current state to EE' }}</b-button>
                 <hr>
             </div>
             <div>
@@ -128,6 +128,7 @@ button {
 <script>
 import axiox from "axios";
 import VueJsonPretty from "vue-json-pretty";
+import { get, startCase } from 'lodash';
 
 const systems = [
   "reactor",
@@ -164,6 +165,7 @@ export default {
       isSynchronizationChangePending: false,
       isConnectionChangePending: false,
       isPushGameStatePending: false,
+      pushGameStateProgress: 0,
       isLoading: true,
       types,
       systems,
@@ -227,20 +229,19 @@ export default {
       }
       const command =
         selectedValueType === "health" ? "setSystemHealth" : "setSystemHeat";
-      this.makeSetValueRequest({ command, value, target: selectedTarget });
+      return this.makeSetValueRequest({ command, value, target: selectedTarget });
     },
     async makeSetValueRequest(data) {
       this.isLoading = true;
-      await axios({
+      return axios({
         url: "/state",
         baseURL: this.$store.state.backend.uri,
         method: "put",
         data
-      }).catch(error => {
+      }).then(() => this.isLoading = false).catch(error => {
         this.errors.push("" + error);
         this.isLoading = false;
       });
-      this.isLoading = false;
     },
     setAlertState(alertState) {
       // Return if a alert state change is already pending or alertState matches current one
@@ -298,19 +299,45 @@ export default {
       });
     },
     async pushFullGameState(value) {
-      if (this.isPushGameStatePending || this.shipMetadata.ee_sync_enabled) {
-        return;
-      }
+      this.pushGameStateProgress = 0;
       this.isPushGameStatePending = true;
-      await axios({
-        url: "/state/full-push",
-        baseURL: this.$store.state.backend.uri,
-        method: "post"
-      }).catch(error => {
-        this.errors.push("" + error);
-      });
-      this.isPushGameStatePending = false;
-    }
+      const DELAY_BETWEEN_REQUESTS = 400;
+      // Sync system healths and heats first
+      this.selectedType = 'systems';
+      for (const system of systems) {
+        this.selectedTarget = system;
+        for (const systemType of systemValueTypes) {
+          this.selectedValueType = systemType;
+          const valueKey = `${system}${startCase(systemType)}`;
+          this.selectedValue = get(this.gameState, ['systems', systemType, valueKey]);
+          await this.setValue();
+          await new Promise((resolve, reject) => setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS));
+          this.pushGameStateProgress = this.pushGameStateProgress + 1;
+        }
+      }
+
+      // Then sync weapon counts
+      this.selectedType = 'weapons';
+      for (const weapon of weapons) {
+        this.selectedTarget = weapon;
+        this.selectedValue = get(this.gameState, ['weapons', `${weapon}Count`]);
+        await this.setValue();
+        await new Promise((resolve, reject) => setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS));
+        this.pushGameStateProgress = this.pushGameStateProgress + 1;
+      }
+
+    // Finally sync the hull health
+    this.selectedType = 'hull';
+    this.selectedValue = get(this.gameState, 'general.shipHullPercent');
+    await this.setValue();
+    this.pushGameStateProgress = this.pushGameStateProgress + 1;
+    this.isPushGameStatePending = false;
+    this.$notify({
+      title: `Success`,
+      text: `Game state pushed`,
+      type: `success`,
+    });
+  }
   }
 };
 </script>
