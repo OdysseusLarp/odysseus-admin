@@ -35,7 +35,7 @@
 
     <h2>Tag management</h2>
     <p>
-      <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" variant="primary" @click="addNewTag">Add new tag</b-button>
+      <b-button size="sm" class="my-2 my-sm-0" variant="primary" @click="addNewTag">Add new tag</b-button>
     </p>
     <b-table striped hover bordered :items="tags" :fields="tagColumns" @row-clicked="selectTag"></b-table>
 
