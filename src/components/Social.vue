@@ -55,18 +55,6 @@
     <div v-else>
       No unread messages.
     </div>
-    <div v-if="!!auditLogEntries.length">
-      <h2>Datahub audit log</h2>
-      <p>
-        Showing last 150 events.
-      </p>
-      <p>
-        <b-form-checkbox v-model="showNpcAuditLog" @change="parseAuditLogEntries" name="check-button" switch>
-          Show logins to NPC accounts
-        </b-form-checkbox>
-      </p>
-      <b-table striped hover bordered :items="formattedAuditLogEntries" :fields="auditLogTableColumns"></b-table>
-    </div>
     <hr>
     <div>
         <h2>Person actions</h2>
@@ -111,6 +99,19 @@
             </b-modal>
           </div>
         </div>
+    </div>
+    <hr>
+    <div v-if="!!auditLogEntries.length">
+      <h2>Datahub audit log</h2>
+      <p>
+        Showing last 150 events.
+      </p>
+      <p>
+        <b-form-checkbox v-model="showNpcAuditLog" @change="parseAuditLogEntries" name="check-button" switch>
+          Show logins to NPC accounts
+        </b-form-checkbox>
+      </p>
+      <b-table striped hover bordered :items="formattedAuditLogEntries" :fields="auditLogTableColumns"></b-table>
     </div>
   </div>
 </template>
