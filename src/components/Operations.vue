@@ -32,6 +32,26 @@
             <b-button variant="primary" @click="setCompleted" v-if="!selectedOperation.is_complete">Set is completed</b-button>
         </div>
     </b-modal>
+
+    <h2>Tag management</h2>
+    <p>
+      <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" variant="primary" @click="addNewTag">Add new tag</b-button>
+    </p>
+    <b-table striped hover bordered :items="tags" :fields="tagColumns" @row-clicked="selectTag"></b-table>
+
+    <!-- Tag details modal -->
+    <b-modal ref="tag-details-modal" id="tag-details-modal" title="Tag details" @ok="handleTagOk">
+      <b-form-group label="Tag ID" label-for="tag-id">
+        <b-input id="tag-id" v-model="tagId" type="text" required :disabled="!isCreate"></b-input>
+      </b-form-group>
+      <b-form-group label="Type" label-for="tag-type">
+        <b-input id="tag-type" v-model="tagType" type="text"></b-input>
+      </b-form-group>
+      <b-form-group label="Description" label-for="tag-description">
+        <b-form-textarea id="tag-description" v-model="tagDescription" :rows="10"></b-form-textarea>
+      </b-form-group>
+      <b-button size="sm" class="my-2 my-sm-0" variant="danger" @click="deleteTag" v-if="!isCreate">Delete tag (NO CONFIRMATION)</b-button>
+    </b-modal>
   </div>
 </template>
 
@@ -52,9 +72,16 @@ export default {
       errors: [],
       isLoading: true,
       operations: [],
+      tags: [],
       filteredOperations: [],
       selectedOperation: null,
       showPendingOnly: true,
+      isCreate: true,
+      selectedTag: null,
+      tagId: '',
+      tagType: '',
+      tagDescription: '',
+      // tagMetadata: {}, // Not really used but whatever
       operationTableColumns: [
         {
           key: 'age',
@@ -95,6 +122,25 @@ export default {
           formatter: value => value ? 'Yes' : 'No'
         },
       ],
+      tagColumns: [
+        {
+          key: 'id',
+          label: 'ID',
+        },
+        {
+          key: 'type',
+          label: 'Type'
+        },
+        {
+          key: 'description',
+          label: 'Description'
+        },
+        // Not used, at least in the first game
+        // {
+        //   key: 'metadata',
+        //   label: 'Metadata'
+        // },
+      ]
     };
   },
 
@@ -117,10 +163,51 @@ export default {
   methods: {
     fetchData() {
         this.fetchOperations();
+        this.fetchTags();
     },
     selectOperation(operation) {
         this.selectedOperation = operation;
         this.openModal();
+    },
+    selectTag(tag) {
+      this.isCreate = false;
+      this.selectedTag = tag;
+      this.tagId = tag.id;
+      this.tagType = tag.type;
+      this.tagDescription = tag.description;
+      this.$refs['tag-details-modal'].show();
+    },
+    addNewTag() {
+      this.tagId = '';
+      this.tagType = '';
+      this.tagDescription = '';
+      this.isCreate = true;
+      this.$refs['tag-details-modal'].show();
+    },
+    deleteTag() {
+      if (!this.selectedTag) return;
+      this.$refs['tag-details-modal'].hide();
+      axios.delete(`/tag/${this.selectedTag.id}`).then(() => {
+        this.$notify({
+          title: `Tag deleted`,
+          text: `Successfully deleted tag ${this.selectedTag.id}`,
+          type: 'success',
+        });
+        this.fetchTags();
+        this.selectedTag = null;
+      }).catch(err => pushError(this.errors, err, this.$notify));
+    },
+    handleTagOk() {
+      const data = { id: this.tagId, description: this.tagDescription };
+      if (this.tagType) data.type = this.tagType;
+      axios.put('/tag', data).then(() => {
+        this.fetchTags();
+        this.$notify({
+          title: `Tag added`,
+          text: `Successfully ${this.isCreate ? 'created' : 'updated'} tag ${this.tagId}`,
+          type: 'success',
+        });
+      }).catch(err => pushError(this.errors, err, this.$notify));
     },
     openModal() {
         this.$refs['operation-details-modal'].show();
@@ -147,6 +234,13 @@ export default {
             this.filterOperations();
         })
         .catch(error => pushError(this.errors, error, this.$notify));
+      this.isLoading = false;
+    },
+    async fetchTags() {
+      this.isLoading = true;
+        await axios.get('/tag')
+          .then(res => this.tags = res.data)
+          .catch(err => pushError(this.errors, err, this.$notify));
       this.isLoading = false;
     },
     setCompleted() {
