@@ -91,7 +91,7 @@ export default {
         {
           key: 'author',
           label: 'Author',
-          formatter: person => person.full_name
+          formatter: person => person ? person.full_name : 'Unknown'
         },
         {
           key: 'target',
