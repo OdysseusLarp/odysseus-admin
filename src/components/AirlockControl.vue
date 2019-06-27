@@ -12,18 +12,21 @@
 		Actions:
 		<div class="button-group">
 			<b-button variant="success" @click="sendCommand('open')">Open</b-button>
-			<b-button variant="success" @click="sendCommand('close')">Close</b-button>
+			<b-button :variant="confirmClose ? 'danger' : 'success'" @click="sendCommand('close')">Close</b-button>
 			<b-button variant="success" @click="sendCommand('pressurize')">Pressurize</b-button>
-			<b-button variant="success" @click="sendCommand('depressurize')">Depressurize</b-button>
-			<b-button variant="warning" @click="sendCommand('stop')">Stop</b-button>
+			<b-button :variant="confirmClose ? 'danger' : 'success'" @click="sendCommand('depressurize')">Depressurize</b-button>
+			<!--
 			<b-button variant="warning" @click="sendCommand('malfunction')">Malfunction</b-button>
+			-->
+			<b-button variant="outline-warning" @click="sendCommand('stop')">Cancel</b-button>
+			<div style="color: red">{{confirmClose || ''}}</div>
 		</div>
 
-		Force status (does not fire DMX events!):
+		Force status (aborts action countdown, does not fire DMX events!):
 		<div class="button-group">
-			<b-button variant="danger" @click="forceStatus('open')">Open</b-button>
-			<b-button variant="danger" @click="forceStatus('closed')">Closed</b-button>
-			<b-button variant="danger" @click="forceStatus('vacuum')">Vacuum</b-button>
+			<b-button variant="warning" @click="forceStatus('open')">Open</b-button>
+			<b-button variant="warning" @click="forceStatus('closed')">Closed</b-button>
+			<b-button variant="warning" @click="forceStatus('vacuum')">Vacuum</b-button>
 		</div>
 
 	</b-container>
@@ -55,6 +58,9 @@ export default {
 			if (!id) return { type: type, id: 'none', status: 'n/a' }
 			return this.getBlob(type, id) || { type: type, id: id, status: 'NOT FOUND' }
 		},
+		confirmClose () {
+			return this.box.status === 'open' && this.box.config.confirm_close_message
+		}
   },
 	methods: {
 		getBlob (type, id) {
@@ -79,6 +85,3 @@ export default {
 	},
 };
 </script>
-
-<style>
-</style>
