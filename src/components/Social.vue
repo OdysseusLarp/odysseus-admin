@@ -72,6 +72,7 @@
                 <b-badge pill variant="light" v-if="person.title"> {{ person.title }}</b-badge>
                 <b-badge pill variant="primary">{{ person.status }}</b-badge>
                 <b-badge pill variant="secondary" v-if="person.ship">{{ person.ship.id }}</b-badge>
+                <b-badge pill variant="warning" v-if="!person.is_character">NPC</b-badge>
               </li>
           </ul>
         </div>
@@ -82,7 +83,7 @@
           </b-input-group-append>
         </b-input-group>
         <div v-if="selectedPerson" class="selected-person">
-          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC)</span></h3>
+          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC, {{ npcCardId ? `Card ID ${npcCardId}` : 'No card ID' }})</span></h3>
           <b-input-group prepend="Person status" class="mt-3">
             <b-form-select v-model="personStatus" :options="personStatusOptions"></b-form-select>
             <b-input-group-append>
@@ -207,6 +208,7 @@ export default {
       searchPersonResults: [],
       selectedPerson: null,
       selectedShipFilter: null,
+      npcCardId: null,
       allShips: [],
       personStatus: '',
       personIsVisible: false,
@@ -299,12 +301,17 @@ export default {
         this.searchPersonResults = res.data.persons;
       });
     },
-    selectPerson(person) {
+    async selectPerson(person) {
       this.selectedPerson = person;
+      this.npcCardId = null;
       if (person) {
         this.writtenPersonId = person.id;
         this.personTitle = person.title;
         this.personStatus = person.status;
+      } if (!person.is_character) {
+        axios.get(`/person/${person.id}`).then(p => this.npcCardId = p.card_id).catch(err => {
+          console.log('could not get card id for npc', person.id);
+        });
       }
     },
     formatVoteSubtitle(vote) {
