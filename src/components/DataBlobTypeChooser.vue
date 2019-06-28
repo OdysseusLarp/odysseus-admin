@@ -6,17 +6,20 @@
           <option :value="null" disabled>-- Choose data type --</option>
         </template>
       </b-form-select>
+      <b-button variant="primary" @click="newDataBlob" class="new-blob-button">New data store</b-button>
     </b-container>
 
     <DataBlobList v-if="selected" :type="selected"></DataBlobList>
     <data-blob-editor ref="dataBlobEditor"></data-blob-editor>
 
-    <b-container fluid>
-      <b-button variant="primary" @click="newDataBlob">New data store</b-button>
-    </b-container>
-
   </div>
 </template>
+
+<style>
+.new-blob-button {
+  float: right;
+}
+</style>
 
 <script>
 import { mapState } from "vuex";
