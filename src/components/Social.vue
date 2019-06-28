@@ -58,6 +58,23 @@
     <hr>
     <div>
         <h2>Person actions</h2>
+        <b-input-group prepend="Search" class="mt-3">
+          <b-form-select v-model="selectedShipFilter" :options="allShips" placeholder="Ship"></b-form-select>
+          <b-form-input v-model="writtenPersonName" @keydown.enter.native="searchPerson" placeholder="Person name"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="outline-success" @click="getPerson">Search person</b-button>
+          </b-input-group-append>
+        </b-input-group>
+        <div class="person-search-results" v-if="searchPersonResults.length">
+          <ul>
+            <li v-for="person in searchPersonResults" v-bind:key="person.id">
+                <strong @click="selectPerson(person)">{{ person.full_name }}</strong>
+                <b-badge pill variant="light" v-if="person.title"> {{ person.title }}</b-badge>
+                <b-badge pill variant="primary">{{ person.status }}</b-badge>
+                <b-badge pill variant="secondary" v-if="person.ship">{{ person.ship.id }}</b-badge>
+              </li>
+          </ul>
+        </div>
         <b-input-group prepend="Person ID" class="mt-3">
           <b-form-input v-model="writtenPersonId" @keydown.enter.native="getPerson"></b-form-input>
           <b-input-group-append>
@@ -76,6 +93,12 @@
             <b-form-select v-model="personIsVisible" :options="personVisibleOptions"></b-form-select>
             <b-input-group-append>
               <b-button variant="outline-success" @click="setPersonVisibility">Set visibility</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person title" class="mt-3">
+            <b-form-input v-model="personTitle"></b-form-input>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonTitle">Set title</b-button>
             </b-input-group-append>
           </b-input-group>
           <div class="person-groups-checkboxes">
@@ -139,6 +162,18 @@ button {
     font-weight: bold;
   }
 }
+
+.person-search-results {
+  padding: 16px;
+}
+
+li > * {
+  margin: auto 4px;
+}
+
+li > strong {
+  cursor: pointer;
+}
 </style>
 
 <script>
@@ -168,9 +203,14 @@ export default {
       showNpcUnreadMessagesOnly: false,
       showNpcAuditLog: false,
       writtenPersonId: '',
+      writtenPersonName: '',
+      searchPersonResults: [],
       selectedPerson: null,
+      selectedShipFilter: null,
+      allShips: [],
       personStatus: '',
       personIsVisible: false,
+      personTitle: '',
       unreadTableColumns: [
         {
           key: 'full_name',
@@ -251,6 +291,22 @@ export default {
     }
   },
   methods: {
+    searchPerson() {
+      if (!this.writtenPersonName) return this.searchPersonResults = [];
+      const searchParams = { name: this.writtenPersonName, entries: 150, show_hidden: true };
+      if (this.selectedShipFilter) searchParams.ship_id = this.selectedShipFilter.trim();
+      axios.get(`/person`, { params: searchParams }).then(res => {
+        this.searchPersonResults = res.data.persons;
+      });
+    },
+    selectPerson(person) {
+      this.selectedPerson = person;
+      if (person) {
+        this.writtenPersonId = person.id;
+        this.personTitle = person.title;
+        this.personStatus = person.status;
+      }
+    },
     formatVoteSubtitle(vote) {
       return `Created by ${vote.author.full_name} at ${vote.created_at}`;
     },
@@ -264,7 +320,8 @@ export default {
       this.fetchPendingsPosts();
       this.fetchUnreadMessages();
       this.fetchAuditLog();
-      this.fetchAllGroups();
+      if (!this.allGroups.length) this.fetchAllGroups();
+      if (!this.allShips.length) this.fetchAllShips();
     },
     removeError(i) {
       this.errors.splice(i, 1);
@@ -283,8 +340,20 @@ export default {
           this.personStatus = res.data.status;
           this.personGroups = res.data.groups;
           this.personIsVisible = res.data.is_visible;
+          this.personTitle = res.data.title || '';
         })
         .catch(err => pushError(this.errors, err, this.$notify));
+    },
+    setPersonTitle() {
+      if (!this.selectedPerson) return;
+      this.patchPerson({ title: this.personTitle }).then(() => {
+        this.$notify({
+          title: 'Success',
+          text: `Person title set to ${this.personTitle}`,
+          type: "success",
+        });
+        this.getPerson();
+      });
     },
     setPersonVisibility() {
       if (!this.selectedPerson) return;
@@ -340,6 +409,17 @@ export default {
         })
         .catch(this.handleError);
       this.pendingRequests.delete("groups");
+      this.updateIsLoading();
+    },
+    async fetchAllShips() {
+      this.pendingRequests.add("ships");
+      await axios
+        .get("/fleet?show_hidden=true", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          this.allShips = ['', ...(response.data || []).map(s => s.id)];
+        })
+        .catch(this.handleError);
+      this.pendingRequests.delete("ships");
       this.updateIsLoading();
     },
     async fetchPendingVotes() {
