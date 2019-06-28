@@ -62,7 +62,7 @@
           <b-form-select v-model="selectedShipFilter" :options="allShips" placeholder="Ship"></b-form-select>
           <b-form-input v-model="writtenPersonName" @keydown.enter.native="searchPerson" placeholder="Person name"></b-form-input>
           <b-input-group-append>
-            <b-button variant="outline-success" @click="getPerson">Search person</b-button>
+            <b-button variant="outline-success" @click="searchPerson">Search person</b-button>
           </b-input-group-append>
         </b-input-group>
         <div class="person-search-results" v-if="searchPersonResults.length">
@@ -72,7 +72,7 @@
                 <b-badge pill variant="light" v-if="person.title"> {{ person.title }}</b-badge>
                 <b-badge pill variant="primary">{{ person.status }}</b-badge>
                 <b-badge pill variant="secondary" v-if="person.ship">{{ person.ship.id }}</b-badge>
-                <b-badge pill variant="warning" v-if="!person.is_character">NPC</b-badge>
+                <!--<b-badge pill variant="warning" v-if="!person.is_character">NPC</b-badge>-->
               </li>
           </ul>
         </div>
@@ -83,7 +83,7 @@
           </b-input-group-append>
         </b-input-group>
         <div v-if="selectedPerson" class="selected-person">
-          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC, {{ npcCardId ? `Card ID ${npcCardId}` : 'No card ID' }})</span></h3>
+          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC, {{ selectedPerson.card_id ? `Card ID ${selectedPerson.card_id }` : 'No card ID' }})</span></h3>
           <b-input-group prepend="Person status" class="mt-3">
             <b-form-select v-model="personStatus" :options="personStatusOptions"></b-form-select>
             <b-input-group-append>
@@ -208,7 +208,6 @@ export default {
       searchPersonResults: [],
       selectedPerson: null,
       selectedShipFilter: null,
-      npcCardId: null,
       allShips: [],
       personStatus: '',
       personIsVisible: false,
@@ -302,17 +301,9 @@ export default {
       });
     },
     async selectPerson(person) {
-      this.selectedPerson = person;
-      this.npcCardId = null;
-      if (person) {
-        this.writtenPersonId = person.id;
-        this.personTitle = person.title;
-        this.personStatus = person.status;
-      } if (!person.is_character) {
-        axios.get(`/person/${person.id}`).then(p => this.npcCardId = p.card_id).catch(err => {
-          console.log('could not get card id for npc', person.id);
-        });
-      }
+      if (!(person && person.id)) return;
+      this.writtenPersonId = person.id;
+      this.getPerson();
     },
     formatVoteSubtitle(vote) {
       return `Created by ${vote.author.full_name} at ${vote.created_at}`;
