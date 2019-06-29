@@ -90,11 +90,11 @@
       </div>
       <div v-if="jump.status === 'jumping'">
         <b-button :variant="(jump.breaking_jump && jumpSecs < 6*60) ? 'danger' : 'primary'" @click="write({status: 'broken'})">End jump</b-button>
-        <b-button variant="secondary" @click="write({status: 'cooldown'})">End jump with nothing breaking</b-button>
         <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: true})">Change to breaking jump</b-button>
-        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: true})">Change to minor breaking jump</b-button>
-        <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: false})">Change to non-breaking jump</b-button>
-        <br>(Switching between non/breaking jump should be done before 5min mark - after that A/V might not react correctly, but breakage will work as expected. Breaking jump should not be ended before 6min mark due to A/V.)
+        <b-button :variant="(jumpSecs < 5*60 || !jump.breaking_jump) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: true})">Change to minor breaking jump</b-button>
+        <b-button :variant="(jumpSecs < 5*60 || !jump.breaking_jump) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: false})">Change to non-breaking jump</b-button>
+        <b-button variant="danger" @click="write({status: 'cooldown'})">End jump without breaking tasks (go to 'cooldown' state)</b-button>
+        <br>(Switching between major breaking / (minor/non)-breaking jump should be done before 5min mark - after that A/V might not react correctly, but breakage will work as expected. Breaking jump should not be ended before 6min mark due to A/V.)
       </div>
       <div>
         <span class="color">Legend:</span>
