@@ -12,7 +12,7 @@
         <div class="card-text">
           <div>Current position: {{ odysseus.position.name }}</div>
           <div>
-            <b-input-group prepend="Probe count" class="mt-3">
+            <b-input-group size="sm" prepend="Probe count" class="mt-3">
               <b-form-input v-model="probeCount"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('probe_count', probeCount)">Patch value</b-button>
@@ -20,7 +20,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Jump crystal count" class="mt-3">
+            <b-input-group size="sm" prepend="Jump crystal count" class="mt-3">
               <b-form-input v-model="jumpCrystalCount"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('jump_crystal_count', jumpCrystalCount)">Patch value</b-button>
@@ -28,7 +28,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Jump range (grid)" class="mt-3">
+            <b-input-group size="sm"prepend="Jump range (grid)" class="mt-3">
               <b-form-input v-model="jumpRange"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('jump_range', jumpRange)">Patch value</b-button>
@@ -36,7 +36,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Scan range (grid)" class="mt-3">
+            <b-input-group size="sm"prepend="Scan range (grid)" class="mt-3">
               <b-form-input v-model="scanRange"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('scan_range', scanRange)">Patch value</b-button>
@@ -44,7 +44,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Object scan min (s)" class="mt-3">
+            <b-input-group size="sm"prepend="Object scan min (s)" class="mt-3">
               <b-form-input v-model="objectScanMin"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('object_scan_duration.min_seconds', objectScanMin)">Patch value</b-button>
@@ -52,7 +52,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Object scan max (s)" class="mt-3">
+            <b-input-group size="sm"prepend="Object scan max (s)" class="mt-3">
               <b-form-input v-model="objectScanMax"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('object_scan_duration.max_seconds', objectScanMax)">Patch value</b-button>
@@ -60,7 +60,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Grid scan min (s)" class="mt-3">
+            <b-input-group size="sm"prepend="Grid scan min (s)" class="mt-3">
               <b-form-input v-model="gridScanMin"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('grid_scan_duration.min_seconds', gridScanMin)">Patch value</b-button>
@@ -68,7 +68,7 @@
             </b-input-group>
           </div>
           <div>
-            <b-input-group prepend="Grid scan max (s)" class="mt-3">
+            <b-input-group size="sm"prepend="Grid scan max (s)" class="mt-3">
               <b-form-input v-model="gridScanMax"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="patchMetadata('grid_scan_duration.max_seconds', gridScanMax)">Patch value</b-button>
@@ -77,13 +77,6 @@
           </div>
         </div>
     </b-card>
-    <h2>All ships</h2>
-    <b-button v-b-toggle.collapse-1 variant="primary">Show data of all ships</b-button>
-    <b-collapse id="collapse-1" class="mt-2">
-      <div v-if="!!fleet.length">
-        <vue-json-pretty :data="fleet" class="fleet-state"></vue-json-pretty>
-      </div>
-    </b-collapse>
     <h2>Actions</h2>
     <b-button class="batch-button" variant="outline-primary" size="md" @click="emitRefreshMap" >Refresh starmap</b-button>
     <div>
@@ -93,7 +86,7 @@
         ref="modal"
         title="Set all ships to visible"
         @ok="handleShipsVisibleOk">
-        WARNING: Pressing OK will set all fleet ships to visible.
+        WARNING: Pressing OK will set all fleet ships to visible in EOC Datahub and LORA Science Voyager.
        </b-modal>
     </div>
     <div>
@@ -103,7 +96,7 @@
         ref="modal"
         title="Set all persons to visible"
         @ok="handlePersonsVisibleOk">
-        WARNING: Pressing OK will set all persons to visible, except for a selected few.
+        WARNING: Pressing OK will set all persons to visible in EOC Datahub, except for a selected few.
        </b-modal>
     </div>
     <div>
@@ -123,7 +116,7 @@
         <div>
           <h3>Move ship</h3>
           Enter coordinates
-          <b-input-group prepend="Paste grid name" class="mt-3 paste-grid-name">
+          <b-input-group size="sm" prepend="Paste grid name" class="mt-3 paste-grid-name">
               <b-form-input v-model="pastedGridName"></b-form-input>
               <b-input-group-append>
                 <b-button variant="outline-success" @click="parsePastedGridName">Parse</b-button>
@@ -155,19 +148,19 @@
           <p>
             {{ coordinateStatus }}
           </p>
-          <b-button variant="warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
+          <b-button :disabled="!selectedShips.length" variant="warning" :v-if="areCoordinatesValid" @click="moveShips">Move selected ships to coordinates</b-button>
         </div>
         <hr>
         <div>
           <h3>Destroy ships</h3>
             <div>
-              <b-button class="batch-button" variant="warning" size="md" v-b-modal.modal-destroy-ships>Destroy selected ships</b-button>
+              <b-button :disabled="!selectedShips.length" class="batch-button" variant="warning" size="md" v-b-modal.modal-destroy-ships>Destroy selected ships and kill everyone aboard</b-button>
               <b-modal
                 id="modal-destroy-ships"
                 ref="modal"
                 title="Destroy selected ships"
                 @ok="handleDestroyShips">
-                <p>WARNING: Pressing OK will destroy the following ships and set status 'Killed in action' for everyone on board:</p>
+                <p>WARNING: Pressing OK will destroy the following ships and set status 'Killed in action' for everyone aboard</p>
                 <ul>
                   <li v-for="ship in selectedShips" v-bind:key="ship">{{ ship }}</li>
                 </ul>
@@ -176,6 +169,13 @@
         </div>
       </div>
     </div>
+    <h2>Data of all ships</h2>
+    <b-button v-b-toggle.collapse-1 variant="primary">Toggle to show data of all ships</b-button>
+    <b-collapse id="collapse-1" class="mt-2">
+      <div v-if="!!fleet.length">
+        <vue-json-pretty :data="fleet" class="fleet-state"></vue-json-pretty>
+      </div>
+    </b-collapse>
     </div>
   </div>
 </template>
