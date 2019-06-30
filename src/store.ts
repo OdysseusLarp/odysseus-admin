@@ -10,6 +10,10 @@ const vuexPersist = new VuexPersist({
   storage: localStorage
 });
 
+const uri = window.location.hostname === 'localhost' ?
+  'http://localhost:8888' :
+  window.location.origin;
+
 const store = new Vuex.Store<State>({
   state: {
     dataBlobs: [],
@@ -18,10 +22,10 @@ const store = new Vuex.Store<State>({
       type: ""
     },
     backend: {
-      uri: "http://localhost:8888",
+      uri: uri,
       username: "",
       password: "",
-      autoRefresh: 0
+      autoRefresh: 15
     },
     dataBlobTypeChooser: {
       selectedType: null
