@@ -89,13 +89,19 @@
         (Aborting can be done during 60s countdown.)
       </div>
       <div v-if="jump.status === 'jumping'">
-        <b-button :variant="(jump.breaking_jump && jumpSecs < 6*60) ? 'danger' : 'primary'" @click="write({status: 'broken'})">End jump</b-button>
+        <p v-if="jumpLength" style="font-weight: bold">Next jump cycle length overridden duration: <span style="color: #DC3545"> {{Math.floor(jumpLength / 60 / 60 / 1000)}} hours {{(jumpLength / 60 / 1000) % 60}} minutes</span> ({{jumpLength/60/1000}} minutes)</p>
+        <b-button :variant="(jump.breaking_jump && jumpSecs < 6*60) ? 'danger' : 'primary'" @click="write({status: 'broken', last_jump_override})">End jump</b-button>
         <b-button :variant="(jumpSecs < 5*60) ? 'secondary' : 'danger'" @click="write({breaking_jump: true})">Change to breaking jump</b-button>
         <b-button :variant="(jumpSecs < 5*60 || !jump.breaking_jump) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: true})">Change to minor breaking jump</b-button>
         <b-button :variant="(jumpSecs < 5*60 || !jump.breaking_jump) ? 'secondary' : 'danger'" @click="write({breaking_jump: false, minor_breaking_jump: false})">Change to non-breaking jump</b-button>
-        <b-button variant="danger" @click="write({status: 'cooldown'})">End jump without breaking tasks (go to 'cooldown' state)</b-button>
+        <b-button variant="danger" @click="write({status: 'cooldown', last_jump_override})">End jump without breaking tasks (go to 'cooldown' state)</b-button>
         <br>(Switching between major breaking / (minor/non)-breaking jump should be done before 5min mark - after that A/V might not react correctly, but breakage will work as expected. Breaking jump should not be ended before 6min mark due to A/V.)
       </div>
+      <div style="margin-top:1em">
+        <b-button v-if="jump.status !== 'jumping' && jump.status !== 'jump_initiated'" variant="outline-secondary" @click="changeCurrentJumpDuration">Change current jump cycle length</b-button>
+        <b-button v-if="jump.status === 'jumping'" variant="outline-secondary" @click="changeNextJumpDuration">Change next jump cycle length</b-button>
+      </div>
+
       <div>
         <span class="color">Legend:</span>
         <span class="color primary">Necessary action</span>
@@ -181,8 +187,19 @@ const DESCRIPTION = {
   jumping: "Ship is jumping. GMs can change whether this is a breaking or non-breaking jump (preferably during first 5 min of jump).",
 }
 
+const HOUR = 60 * 60 * 1000;
+const MIN = 60 * 1000;
+const SEC = 1000;
+
+const SAFE_JUMP_LIMIT = 2 * HOUR + 47 * MIN;
+
 export default {
   components: { TimeAgo },
+  data() {
+    return {
+      jumpLength: undefined
+    }
+  },
   computed: {
     jump() {
       return this.$store.state.dataBlobs.find(blob => blob.type === 'ship' && blob.id === 'jump');
@@ -223,6 +240,13 @@ export default {
       return this.$store.state.dataBlobs
         .find(blob => blob.type === 'task' && blob.id === 'jump_reactor').status
     },
+    last_jump_override() {
+      if (this.jumpLength) {
+        return this.jump.last_jump + this.jumpLength - SAFE_JUMP_LIMIT
+      } else {
+        return undefined
+      }
+    }
   },
   methods: {
     write(data) {
@@ -244,6 +268,7 @@ export default {
             type: "error"
           });
         });
+        this.jumpLength = undefined
       }
     },
     writeBlob(data) {
@@ -281,7 +306,21 @@ export default {
         }
         this.write(state)
       }
-    }
+    },
+    changeNextJumpDuration() {
+      const minutes = prompt("How many MINUTES is the next jump cycle (2h 47min = 167 minutes), cancel to reset to default:")
+      if (minutes) {
+        this.jumpLength = minutes * 60 * 1000
+      } else {
+        this.jumpLength = undefined
+      }
+    },
+    changeCurrentJumpDuration() {
+      const minutes = prompt("How many MINUTES to postpone regulation jump (and cooldown, if not complete)?\nPOSITIVE will delay next jump, NEGATIVE will allow jumping earlier")
+      if (minutes) {
+        this.write({last_jump: this.jump.last_jump + minutes * 60 * 1000})
+      }
+    },
   },
 };
 </script>
