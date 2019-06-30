@@ -201,7 +201,7 @@ export default {
       allGroups: [],
       personGroups: [],
       formattedUnreadMessages: [],
-      showNpcUnreadMessagesOnly: false,
+      showNpcUnreadMessagesOnly: true,
       showNpcAuditLog: false,
       writtenPersonId: '',
       writtenPersonName: '',
