@@ -82,8 +82,15 @@
             <b-button variant="outline-success" @click="getPerson">Get person</b-button>
           </b-input-group-append>
         </b-input-group>
+        <b-input-group prepend="Bio ID" class="mt-3">
+          <b-form-input v-model="writtenBioId" @keydown.enter.native="getPerson"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="outline-success" @click="getPerson">Get person</b-button>
+          </b-input-group-append>
+        </b-input-group>
         <div v-if="selectedPerson" class="selected-person">
-          <h3>Selected person: {{ selectedPerson.full_name }}<span v-if="!selectedPerson.is_character"> (NPC, {{ selectedPerson.card_id ? `Card ID ${selectedPerson.card_id }` : 'No card ID' }})</span></h3>
+          <h3>Selected person: {{ selectedPerson.full_name }} <span v-if="!selectedPerson.is_character">(NPC)</span></h3>
+          <p><strong>Card ID:</strong>{{selectedPerson.card_id}} &nbsp;&nbsp;&nbsp; <strong>Bio ID:</strong> {{ selectedPerson.bio_id }}</p>
           <b-input-group prepend="Person status" class="mt-3">
             <b-form-select v-model="personStatus" :options="personStatusOptions"></b-form-select>
             <b-input-group-append>
@@ -204,6 +211,7 @@ export default {
       showNpcUnreadMessagesOnly: true,
       showNpcAuditLog: false,
       writtenPersonId: '',
+      writtenBioId: '',
       writtenPersonName: '',
       searchPersonResults: [],
       selectedPerson: null,
@@ -330,8 +338,8 @@ export default {
     getPerson() {
       this.selectedPerson = null;
       this.personGroups = [];
-      if (!this.writtenPersonId) return;
-      axios.get(`/person/${this.writtenPersonId}`)
+      if (this.writtenPersonId) {
+        axios.get(`/person/${this.writtenPersonId}`)
         .then(res => {
           this.selectedPerson = res.data;
           if (!res.data) return;
@@ -341,6 +349,18 @@ export default {
           this.personTitle = res.data.title || '';
         })
         .catch(err => pushError(this.errors, err, this.$notify));
+      } else if (this.writtenBioId) {
+        axios.get(`/person/bio/${this.writtenBioId}`)
+        .then(res => {
+          this.selectedPerson = res.data;
+          if (!res.data) return;
+          this.personStatus = res.data.status;
+          this.personGroups = res.data.groups;
+          this.personIsVisible = res.data.is_visible;
+          this.personTitle = res.data.title || '';
+        })
+        .catch(err => pushError(this.errors, err, this.$notify));
+      }
     },
     setPersonTitle() {
       if (!this.selectedPerson) return;
