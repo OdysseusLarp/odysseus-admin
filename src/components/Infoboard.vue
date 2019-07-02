@@ -7,7 +7,7 @@
         @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
     <b-form>
-      <b-form-group label="Current Priority" label-for="currentPriority">
+      <b-input-group prepend="Active set">
         <b-form-select id="currentPriority"
                       v-model="currentPriority"
                       type="text"
@@ -15,18 +15,27 @@
                       required
                       :value="currentPriority">
         </b-form-select>
-      </b-form-group>
+        <b-input-group-append>
+          <b-button class="my-2 my-sm-0" variant="outline-primary" @click="updatePriority">Update current set</b-button>
+        </b-input-group-append>
+      </b-input-group>
     </b-form>
-    <b-button size="sm" class="my-2 my-sm-0" variant="primary" @click="updatePriority">Update current priority</b-button>
-    <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" variant="success" entry="'newInfoboard'" @click="sendInfo(newInfoboard)">Add new infoboard entry</b-button>
-    <div v-if="!!infoboards.length">
+    <div v-if="news.length">
+      <h2>News posts</h2>
+      <p>Checked news posts will be shown on infoboards</p>
+      <b-form-checkbox v-for="post in news" v-bind:key="post.id" v-model="post.show_on_infoboard" @change="value => setShowOnInfoboard(post, value)" switch>
+        {{ post.title }}
+      </b-form-checkbox>
+    </div>
+    <div>
+      <h2>Infoboard entries<b-button v-b-modal.infoboard-entry-modal class="my-2 my-md-0 add-infoboard-entry" variant="primary" entry="'newInfoboard'" @click="sendInfo(newInfoboard)">Add new infoboard entry</b-button></h2>
       <b-card v-for="(infoboard,i) in infoboards" :key="i" :class="'card'"
           :title="infoboard.title"
           :sub-title="infoboard.created_at">
           <p class="card-text">
             {{ infoboard.body }}
           </p>
-	  <p>Priority: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
+	  <p>Set: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
 	  <b-button v-b-modal.infoboard-entry-modal size="sm" class="my-2 my-sm-0" entry="'infoboard'" @click="sendInfo(infoboard)">Edit infoboard entry</b-button>
     <b-button size="sm" variant="danger" @click="deleteInfoboardEntry(infoboard.id)">Delete entry</b-button>
       </b-card>
@@ -39,7 +48,7 @@
             Enabled
           </b-form-checkbox>
         </b-form-group>
-        <b-form-group label="Priority" label-for="infoboardPriority">
+        <b-form-group label="Set" label-for="infoboardPriority">
           <b-form-select id="infoboardPriority"
                         v-model="selectedEntry.priority"
                         type="text"
@@ -93,10 +102,14 @@ button {
 .ERROR {
   background: #ffe8eb;
 }
+.add-infoboard-entry {
+  float: right;
+}
 </style>
 
 <script>
 import axiox from "axios";
+import { pushError } from '../helpers';
 
 const emptyEntry = { priority: 1, title: "", body: "", enabled: true };
 
@@ -110,7 +123,8 @@ export default {
       infoboardPriorities: [1, 2, 3],
       currentPriority: 0,
       newInfoboard: { ...emptyEntry },
-      selectedEntry: { ...emptyEntry }
+      selectedEntry: { ...emptyEntry },
+      news: [],
     };
   },
 
@@ -134,6 +148,9 @@ export default {
     handleOk() {
       this.addInfoboardEntry(this.selectedEntry);
     },
+    handleError(error) {
+      pushError(this.errors, error, this.$notify);
+    },
     async addInfoboardEntry(entry) {
       if (!entry.priority || !entry.title || !entry.body) {
         this.errors.push("Priority, title or body was not provided");
@@ -151,10 +168,7 @@ export default {
           this.newInfoboard = { ...emptyEntry };
           this.fetchInfoboardEntries();
         })
-        .catch(err => {
-          console.log("error adding infoboard entry", err);
-          this.errors.push(err + "");
-        });
+        .catch(this.handleError);
       this.isLoading = false;
     },
     async deleteInfoboardEntry(id) {
@@ -162,10 +176,7 @@ export default {
       await axios
         .delete(`/infoboard/${id}`, { baseUrl: this.$store.state.backend.uri })
         .then(() => this.fetchInfoboardEntries())
-        .catch(err => {
-          this.errors.push(err.message);
-          console.log("error deleting infoboard entry", err);
-        });
+        .catch(this.handleError);
       this.isLoading = false;
     },
     async updatePriority() {
@@ -176,17 +187,24 @@ export default {
           { priority: this.currentPriority },
           { baseUrl: this.$store.state.backend.uri }
         )
-        .catch(err => {
-          this.errors.push(err.message);
-          console.log("error updating priority", err);
-        });
+        .catch(this.handleError);
       this.isLoading = false;
     },
     fetchData() {
       this.fetchInfoboardEntries();
+      this.fetchNews();
     },
     removeError(i) {
       this.errors.splice(i, 1);
+    },
+    async setShowOnInfoboard({ id, title }, show_on_infoboard) {
+      await axios.put(`/post`, { id, show_on_infoboard }).then(() => {
+        this.$notify({
+          title: 'Success',
+          text: `Post ${title} will ${show_on_infoboard ? '' : 'NOT '}be shown on infoboard`,
+          type: "success",
+        });
+      }).catch(this.handleError);
     },
     async fetchInfoboardEntries() {
       this.isLoading = true;
@@ -198,10 +216,17 @@ export default {
           );
           this.currentPriority = response.data.priority.priority || 0;
         })
-        .catch(error => {
-          this.errors.push("" + error);
-        });
+        .catch(this.handleError);
       this.isLoading = false;
+    },
+    async fetchNews() {
+      await axios
+        .get("/post", { baseURL: this.$store.state.backend.uri })
+        .then(response => {
+          // Take first five news posts
+          this.news = (response.data || []).filter(n => n.type === 'NEWS').filter((_, i) => i < 5);
+        })
+        .catch(this.handleError);
     },
     sendInfo(entry) {
       this.selectedEntry = entry;

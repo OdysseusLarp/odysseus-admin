@@ -300,7 +300,7 @@ export default {
       this.errors.splice(i, 1);
     },
     handleError(error) {
-      pushError(this.errors, error, $notify);
+      pushError(this.errors, error, this.$notify);
     },
     parsePastedGridName() {
       const gridName = this.pastedGridName.split('-').map(s => s.trim());
