@@ -11,8 +11,11 @@
 
     <!-- Operations table -->
     <p>
-    <b-form-checkbox v-model="showPendingOnly" @change="filterOperations" name="check-button" switch>
+    <b-form-checkbox v-model="showPendingOnly" @change="e => filterOperations({ showPendingOnly: e})" name="check-button" switch>
         Only show operations that are pending actions (is_complete = false)
+    </b-form-checkbox>
+    <b-form-checkbox v-model="showAnalysedOnly" @change="e => filterOperations({ showAnalysedOnly: e })" name="check-button" switch>
+        Only show operations that are analysed (is_analysed = true)
     </b-form-checkbox>
     </p>
     <b-table striped hover bordered :items="filteredOperations" :fields="operationTableColumns" @row-clicked="selectOperation"></b-table>
@@ -20,6 +23,9 @@
     <!-- Operation details modal -->
     <b-modal ref="operation-details-modal" id="operation-details-modal" title="Operation details">
         <div v-if="selectedOperation">
+            <b-alert variant="danger" show v-if="selectedOperation.person && hasSpecialCase(selectedOperation.person.id)">
+              THIS PERSON HAS SOME SPECIAL CASES, ASK A GM!
+            </b-alert>
             <p>Operation performed <strong>{{ selectedOperation.age }} ago</strong></p>
             <p>Performed by: <strong>{{ selectedOperation.author.full_name }}</strong></p>
             <p>Target: <strong>{{ selectedOperation.target }}</strong></p>
@@ -65,6 +71,8 @@ import { format, distanceInWordsToNow } from 'date-fns';
 import { pushError } from '../helpers';
 import { get } from 'lodash';
 
+const SPECIAL_CASE_IDS = new Set(['20019', '20062']);
+
 export default {
   components: {},
   data() {
@@ -76,6 +84,7 @@ export default {
       filteredOperations: [],
       selectedOperation: null,
       showPendingOnly: true,
+      showAnalysedOnly: true,
       isCreate: true,
       selectedTag: null,
       tagId: '',
@@ -110,14 +119,14 @@ export default {
           label: 'Additional type'
         },
         {
-          key: 'is_complete',
-          label: 'Completed',
+          key: 'is_analysed',
+          label: 'Analysed',
           sortable: true,
           formatter: value => value ? 'Yes' : 'No'
         },
         {
-          key: 'is_analysed',
-          label: 'Analysed',
+          key: 'is_complete',
+          label: 'Completed',
           sortable: true,
           formatter: value => value ? 'Yes' : 'No'
         },
@@ -161,6 +170,9 @@ export default {
     }
   },
   methods: {
+    hasSpecialCase(id) {
+      return SPECIAL_CASE_IDS.has(id);
+    },
     fetchData() {
         this.fetchOperations();
         this.fetchTags();
@@ -215,8 +227,16 @@ export default {
     hideModal() {
         this.$refs['operation-details-modal'].hide();
     },
-    filterOperations(showPendingOnly = this.showPendingOnly) {
-        this.filteredOperations = this.operations.filter(o => showPendingOnly ? !o.is_complete : true);
+    filterOperations({ showPendingOnly = this.showPendingOnly, showAnalysedOnly = this.showAnalysedOnly} = {}) {
+        this.filteredOperations = this.operations.filter(o => {
+          const shouldShowPending = showPendingOnly ? !o.is_complete : true;
+          const shouldShowAnalysed = showAnalysedOnly ? o.is_analysed : true
+          return shouldShowPending && shouldShowAnalysed;
+        }).map(o => {
+          // Special cases
+          if (o.person && SPECIAL_CASE_IDS.has(o.person.id)) return { ...o, _rowVariant: 'danger' };
+          return o;
+        });
     },
     async fetchOperations() {
       this.isLoading = true;
