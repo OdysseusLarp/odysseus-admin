@@ -107,7 +107,7 @@ export default {
       this.jumpNeedsAttention = get(jump, 'data.status') === 'calculating';
       this.eeNeedsAttention = !(get(eeMetadata, 'data.isConnectionHealthy') && get(shipMetadata, 'data.ee_sync_enabled') && get(shipMetadata, 'data.ee_connection_enabled'));
       const npcMessages = messages.data.filter(m => !m.receiver.is_character);
-      this.operationsPendingCount = operations.data.length;
+      this.operationsPendingCount = (operations.data || []).filter(o => o.is_analysed).length;
       this.socialPendingCount = posts.data.length + votes.data.length + npcMessages.length;
     }
   }
