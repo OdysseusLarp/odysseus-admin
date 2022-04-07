@@ -247,7 +247,7 @@ export default {
             this.operations = operations.map(o => {
                 let target = '';
                 if (o.person) target = `${o.person.full_name} (person)`;
-                if (o.artifact) target = `${o.artifact.name} (artifact)`;
+                if (o.artifact) target = `${o.artifact.catalog_id} (artifact)`;
                 if (o.tag) target = `${o.tag.id} (tag)`;
                 return { ...o, target, age: distanceInWordsToNow(new Date(o.created_at)) };
             }).sort((a, b) => a.created_at < b.created_at ? 1 : -1);
