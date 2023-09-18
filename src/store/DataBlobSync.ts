@@ -1,24 +1,23 @@
 import store from "../store";
 import io from "socket.io-client";
 import axios from "axios";
-import Vue from 'vue';
-
+import Vue from "vue";
 
 export function fetchAllDataBlobs() {
   store.commit("setInfo", { text: "Loading data...", type: "" });
   axios
     .get("/data", { baseURL: store.state.backend.uri })
-    .then(response => {
+    .then((response) => {
       store.commit("setInfo", {});
       store.commit("setAllDataBlobs", response.data);
     })
-    .catch(e => {
+    .catch((e) => {
       store.commit("setInfo", { text: "Error loading data", type: "error" });
       console.error("Error fetching data blobs (retrying in 5 secs): ", e);
       (<any>Vue).notify({
         title: "Error loading data from backend",
         text: "" + e,
-        type: "error"
+        type: "error",
       });
       setTimeout(fetchAllDataBlobs, 5000);
     });

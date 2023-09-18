@@ -1,14 +1,16 @@
 <template>
   <div class="wrapper">
     <b-container v-for="(error, i) in errors" :key="error" fluid>
-      <b-alert variant="danger" show
+      <b-alert
+variant="danger" show
         dismissible
         :hover="true"
         @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
     </b-container>
     <div v-if="!!pendingVotes.length">
         <h2>Pending new votes</h2>
-        <b-card v-for="vote in pendingVotes" :key="vote.id"
+        <b-card
+v-for="vote in pendingVotes" :key="vote.id"
             class="card"
             :title="vote.title"
             :sub-title="formatVoteSubtitle(vote)">
@@ -29,7 +31,8 @@
     </div>
     <div v-if="!!pendingPosts.length">
         <h2>Pending new posts</h2>
-        <b-card v-for="post in pendingPosts" :key="post.id"
+        <b-card
+v-for="post in pendingPosts" :key="post.id"
             class="card"
             :title="post.title"
             :sub-title="formatPostSubtitle(post)">
@@ -46,7 +49,7 @@
     <div v-if="!!unreadMessages.length">
       <h2>Unread messages</h2>
       <p>
-        <b-form-checkbox v-model="showNpcUnreadMessagesOnly" @change="parseUnreadMessages" name="check-button" switch>
+        <b-form-checkbox v-model="showNpcUnreadMessagesOnly" name="check-button" switch @change="parseUnreadMessages">
           Show only NPCs unread messages
         </b-form-checkbox>
       </p>
@@ -60,18 +63,18 @@
         <h2>Person actions</h2>
         <b-input-group prepend="Search" class="mt-3">
           <b-form-select v-model="selectedShipFilter" :options="allShips" placeholder="Ship"></b-form-select>
-          <b-form-input v-model="writtenPersonName" @keydown.enter.native="searchPerson" placeholder="Person name"></b-form-input>
+          <b-form-input v-model="writtenPersonName" placeholder="Person name" @keydown.enter.native="searchPerson"></b-form-input>
           <b-input-group-append>
             <b-button variant="outline-success" @click="searchPerson">Search person</b-button>
           </b-input-group-append>
         </b-input-group>
-        <div class="person-search-results" v-if="searchPersonResults.length">
+        <div v-if="searchPersonResults.length" class="person-search-results">
           <ul>
-            <li v-for="person in searchPersonResults" v-bind:key="person.id">
+            <li v-for="person in searchPersonResults" :key="person.id">
                 <strong @click="selectPerson(person)">{{ person.full_name }}</strong>
-                <b-badge pill variant="light" v-if="person.title"> {{ person.title }}</b-badge>
+                <b-badge v-if="person.title" pill variant="light"> {{ person.title }}</b-badge>
                 <b-badge pill variant="primary">{{ person.status }}</b-badge>
-                <b-badge pill variant="secondary" v-if="person.ship">{{ person.ship.id }}</b-badge>
+                <b-badge v-if="person.ship" pill variant="secondary">{{ person.ship.id }}</b-badge>
                 <!--<b-badge pill variant="warning" v-if="!person.is_character">NPC</b-badge>-->
               </li>
           </ul>
@@ -120,7 +123,7 @@
             <b-button class="action-button" variant="primary" size="md" @click="updateGroups">Update groups</b-button>
           </div>
           <div>
-            <b-button class="action-button" variant="warning" size="md" v-b-modal.modal-kill-person>Kill this person</b-button>
+            <b-button v-b-modal.modal-kill-person class="action-button" variant="warning" size="md">Kill this person</b-button>
             <b-modal
               id="modal-kill-person"
               ref="modal"
@@ -138,7 +141,7 @@
         Showing last 150 events.
       </p>
       <p>
-        <b-form-checkbox v-model="showNpcAuditLog" @change="parseAuditLogEntries" name="check-button" switch>
+        <b-form-checkbox v-model="showNpcAuditLog" name="check-button" switch @change="parseAuditLogEntries">
           Show logins to NPC accounts
         </b-form-checkbox>
       </p>
@@ -147,45 +150,8 @@
   </div>
 </template>
 
-<style lang="scss">
-button {
-  margin-right: 15px;
-}
-.wrapper {
-  padding: 15px;
-}
-.card {
-  margin: 15px;
-}
-.selected-person {
-  margin-top: 15px
-}
-.action-button {
-  margin: 12px auto;
-}
-.person-groups-checkboxes {
-  margin-top: 15px;
-
-  legend {
-    font-weight: bold;
-  }
-}
-
-.person-search-results {
-  padding: 16px;
-}
-
-li > * {
-  margin: auto 4px;
-}
-
-li > strong {
-  cursor: pointer;
-}
-</style>
-
 <script>
-import axiox from "axios";
+import axios from "axios";
 import VueMarkdown from "vue-markdown";
 import { distanceInWordsStrict } from 'date-fns';
 import { difference } from 'lodash';
@@ -534,7 +500,7 @@ export default {
         method: "put",
         data: { status, is_active }
       })
-        .then(r => {
+        .then(() => {
           this.fetchData();
         }).catch(this.handleError);
     },
@@ -545,10 +511,47 @@ export default {
         method: "put",
         data: { id, status }
       })
-        .then(r => {
+        .then(() => {
           this.fetchData();
         }).catch(this.handleError);
     }
   }
 };
 </script>
+
+<style lang="scss">
+button {
+  margin-right: 15px;
+}
+.wrapper {
+  padding: 15px;
+}
+.card {
+  margin: 15px;
+}
+.selected-person {
+  margin-top: 15px
+}
+.action-button {
+  margin: 12px auto;
+}
+.person-groups-checkboxes {
+  margin-top: 15px;
+
+  legend {
+    font-weight: bold;
+  }
+}
+
+.person-search-results {
+  padding: 16px;
+}
+
+li > * {
+  margin: auto 4px;
+}
+
+li > strong {
+  cursor: pointer;
+}
+</style>

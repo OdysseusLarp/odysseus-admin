@@ -7,10 +7,10 @@ import Social from "./views/Social.vue";
 import ShipLog from "./views/ShipLog.vue";
 import Fleet from "./views/Fleet.vue";
 import Infoboard from "./views/Infoboard.vue";
-import Operations from './views/Operations.vue';
+import Operations from "./views/Operations.vue";
 import EmptyEpsilon from "./views/EmptyEpsilon.vue";
-import Airlocks from './views/Airlocks.vue';
-import Dmx from './views/Dmx.vue';
+import Airlocks from "./views/Airlocks.vue";
+import Dmx from "./views/Dmx.vue";
 
 Vue.use(VueRouter);
 
@@ -19,57 +19,57 @@ export default new VueRouter({
     {
       path: "/",
       name: "home",
-      component: Home
+      component: Home,
     },
     {
       path: "/data",
       name: "data",
-      component: DataBlobs
+      component: DataBlobs,
     },
     {
       path: "/jump",
       name: "jump",
-      component: JumpDrive
+      component: JumpDrive,
     },
     {
       path: "/social",
       name: "social",
-      component: Social
+      component: Social,
     },
     {
       path: "/fleet",
       name: "fleet",
-      component: Fleet
+      component: Fleet,
     },
     {
       path: "/ship-log",
       name: "ship-log",
-      component: ShipLog
+      component: ShipLog,
     },
     {
       path: "/infoboard",
       name: "infoboard",
-      component: Infoboard
+      component: Infoboard,
     },
     {
       path: "/operations",
       name: "operations",
-      component: Operations
+      component: Operations,
     },
     {
       path: "/emptyepsilon",
       name: "emptyepsilon",
-      component: EmptyEpsilon
+      component: EmptyEpsilon,
     },
     {
       path: "/airlocks",
       name: "airlocks",
-      component: Airlocks
+      component: Airlocks,
     },
     {
       path: "/dmx",
       name: "dmx",
-      component: Dmx
+      component: Dmx,
     },
-  ]
+  ],
 });

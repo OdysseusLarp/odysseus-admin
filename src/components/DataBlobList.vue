@@ -1,12 +1,26 @@
 <template>
   <div>
-    <b-table hover :items="dataBlobs" :fields="fields" sort-by="id" @row-clicked="rowClicked">
-      <template slot="status" slot-scope="data"><span :class="statusStyle(data.item.status)">{{data.item.status}}</span></template>
+    <b-table
+      hover
+      :items="dataBlobs"
+      :fields="fields"
+      sort-by="id"
+      @row-clicked="rowClicked"
+    >
+      <template slot="status" slot-scope="data"
+        ><span :class="statusStyle(data.item.status)">{{
+          data.item.status
+        }}</span></template
+      >
       <template slot="updated_at" slot-scope="data">
         <time-ago :time="data.item.updated_at" :warn="600"></time-ago>
       </template>
-      <template slot="value" slot-scope="data">{{formatValue(data.item)}}</template>
-      <template slot="config" slot-scope="data">{{formatConfig(data.item)}}</template>
+      <template slot="value" slot-scope="data">{{
+        formatValue(data.item)
+      }}</template>
+      <template slot="config" slot-scope="data">{{
+        formatConfig(data.item)
+      }}</template>
       <template slot="delete" slot-scope="data">
         <font-awesome-icon icon="trash-alt" @click.stop="del(data.item)" />
       </template>
@@ -15,68 +29,54 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
-.status-good {
-  color: rgb(1, 134, 76);
-}
-.status-okay {
-  color: rgb(193, 130, 15);
-}
-.status-bad {
-  color: rgb(184, 18, 24);
-}
-</style>
-
-
 <script>
 import axios from "axios";
 import DataBlobEditor from "@/components/DataBlobEditor.vue";
 import TimeAgo from "@/components/TimeAgo.vue";
-import io from "socket.io-client";
 
 export default {
   components: {
     DataBlobEditor,
-    TimeAgo
+    TimeAgo,
   },
   props: {
     type: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
   },
   data() {
     return {
       fields: [
         {
           key: "id",
-          sortable: true
+          sortable: true,
         },
         {
           key: "status",
-          sortable: true
+          sortable: true,
         },
         {
           key: "updated_at",
-          sortable: true
+          sortable: true,
         },
         {
           key: "version",
-          sortable: true
+          sortable: true,
         },
         "value",
         // 'config',
         {
           key: "delete",
-          label: ""
-        }
-      ]
+          label: "",
+        },
+      ],
     };
   },
   computed: {
     dataBlobs() {
-      return this.$store.state.dataBlobs.filter(e => e.type === this.type);
-    }
+      return this.$store.state.dataBlobs.filter((e) => e.type === this.type);
+    },
   },
 
   methods: {
@@ -90,7 +90,11 @@ export default {
         delete copy["config"];
         delete copy["presets"];
         delete copy["version"];
-        return JSON.stringify(copy, (key, val) => (val && val.toFixed) ? Number(val.toFixed(2)) : val, 1);
+        return JSON.stringify(
+          copy,
+          (key, val) => (val && val.toFixed ? Number(val.toFixed(2)) : val),
+          1,
+        );
       }
     },
     formatConfig(value) {
@@ -115,9 +119,21 @@ export default {
       if (confirm(`Really delete data store '${item.id}'?`)) {
         axios
           .delete(`/data/${item.type}/${item.id}`)
-          .catch(e => alert(`Error occurred:\n${e}`));
+          .catch((e) => alert(`Error occurred:\n${e}`));
       }
-    }
-  }
+    },
+  },
 };
 </script>
+
+<style lang="scss" scoped>
+.status-good {
+  color: rgb(1, 134, 76);
+}
+.status-okay {
+  color: rgb(193, 130, 15);
+}
+.status-bad {
+  color: rgb(184, 18, 24);
+}
+</style>

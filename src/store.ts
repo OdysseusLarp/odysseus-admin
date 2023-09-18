@@ -7,29 +7,30 @@ Vue.use(Vuex);
 
 const vuexPersist = new VuexPersist({
   key: "odysseus-admin",
-  storage: localStorage
+  storage: localStorage,
 });
 
-const uri = window.location.hostname === 'localhost' ?
-  'http://localhost:8888' :
-  window.location.origin;
+const uri =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8888"
+    : window.location.origin;
 
 const store = new Vuex.Store<State>({
   state: {
     dataBlobs: [],
     info: {
       text: "",
-      type: ""
+      type: "",
     },
     backend: {
       uri: uri,
       username: "",
       password: "",
-      autoRefresh: 15
+      autoRefresh: 15,
     },
     dataBlobTypeChooser: {
-      selectedType: null
-    }
+      selectedType: null,
+    },
   },
   mutations: {
     setBackend(state, backend) {
@@ -37,7 +38,7 @@ const store = new Vuex.Store<State>({
     },
     setDataBlob(state, data) {
       let found = false;
-      state.dataBlobs = state.dataBlobs.map(e => {
+      state.dataBlobs = state.dataBlobs.map((e) => {
         if (e.type === data.type && e.id == data.id) {
           found = true;
           return data;
@@ -51,7 +52,7 @@ const store = new Vuex.Store<State>({
     },
     deleteDataBlob(state, data) {
       state.dataBlobs = state.dataBlobs.filter(
-        e => e.type !== data.type || e.id !== data.id
+        (e) => e.type !== data.type || e.id !== data.id,
       );
     },
     setAllDataBlobs(state, datas) {
@@ -63,10 +64,10 @@ const store = new Vuex.Store<State>({
 
     dataBlobTypeChooser_set_selectedType(state, value) {
       state.dataBlobTypeChooser.selectedType = value;
-    }
+    },
   },
   actions: {},
-  plugins: [vuexPersist.plugin]
+  plugins: [vuexPersist.plugin],
 });
 
 // DEBUGGING: Allow accessing store from global scope:
