@@ -1,24 +1,44 @@
 <template>
   <div>
-    <b-modal id="dataBlobEditorModal" ref="dataBlobEditorModal" :title="existing ? 'Edit data store' : 'New data store'" @ok="handleOk">
+    <b-modal
+      id="dataBlobEditorModal"
+      ref="dataBlobEditorModal"
+      :title="existing ? 'Edit data store' : 'New data store'"
+      @ok="handleOk"
+    >
       <b-form>
-        
-        <b-form-group label="Data type:"
-                      label-for="type">
-          <b-input id="type" v-model="type" type="text" required :state="typeState"></b-input>
+        <b-form-group label="Data type:" label-for="type">
+          <b-input
+            id="type"
+            v-model="type"
+            type="text"
+            required
+            :state="typeState"
+          ></b-input>
         </b-form-group>
 
-        <b-form-group label="Data ID:"
-                      label-for="id">
-          <b-input id="id" v-model="id" type="text" required :state="idState"></b-input>
+        <b-form-group label="Data ID:" label-for="id">
+          <b-input
+            id="id"
+            v-model="id"
+            type="text"
+            required
+            :state="idState"
+          ></b-input>
         </b-form-group>
 
-        <b-form-group label="Content:"
-                      label-for="json">
-          <b-form-textarea id="json" v-model="json" :rows="10" :state="jsonState"></b-form-textarea>
+        <b-form-group label="Content:" label-for="json">
+          <b-form-textarea
+            id="json"
+            v-model="json"
+            :rows="10"
+            :state="jsonState"
+          ></b-form-textarea>
         </b-form-group>
 
-        <small v-if="patch">Provided fields will be updated, other fields will keep existing values.
+        <small v-if="patch"
+          >Provided fields will be updated, other fields will keep existing
+          values.
           <a href="#" @click.prevent="editRaw">Edit raw</a>
         </small>
         <small v-else>Content will overwrite the entire data store.</small>
@@ -27,16 +47,15 @@
           <b-dropdown-item
             v-for="preset in Object.keys(presets)"
             :key="preset"
-            @click="applyPreset(preset)">
-              {{preset}}
+            @click="applyPreset(preset)"
+          >
+            {{ preset }}
           </b-dropdown-item>
         </b-dropdown>
-
       </b-form>
     </b-modal>
   </div>
 </template>
-
 
 <script>
 import axios from "axios";
@@ -53,7 +72,7 @@ export default {
       json: "",
       jsonState: null,
       presets: undefined,
-      patch: true
+      patch: true,
     };
   },
 
@@ -66,7 +85,7 @@ export default {
     },
     json() {
       this.validateJson();
-    }
+    },
   },
 
   methods: {
@@ -138,29 +157,29 @@ export default {
         var data = {
           ...JSON.parse(this.json),
           id: this.id,
-          type: this.type
+          type: this.type,
         };
         let method = this.patch ? axios.patch : axios.post;
         method(`/data/${this.type}/${this.id}?force=true`, data)
-          .then(response => {
+          .then((response) => {
             console.log("Success");
             this.$notify({
               title: "Data saved successfully",
-              type: "success"
+              type: "success",
             });
           })
-          .catch(error => {
+          .catch((error) => {
             console.log("Error saving data blob:", error);
             this.$notify({
               title: "Error saving data",
               text: "" + error,
-              type: "error"
+              type: "error",
             });
           });
       } else {
         evt.preventDefault();
       }
-    }
-  }
+    },
+  },
 };
 </script>

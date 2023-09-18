@@ -13,6 +13,6 @@ import Fleet from "@/components/Fleet.vue";
 
 export default {
   components: { Fleet },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>

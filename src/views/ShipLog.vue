@@ -13,6 +13,6 @@ import ShipLog from "@/components/ShipLog.vue";
 
 export default {
   components: { ShipLog },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>

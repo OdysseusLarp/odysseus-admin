@@ -13,6 +13,6 @@ import Social from "@/components/Social.vue";
 
 export default {
   components: { Social },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>

@@ -7,7 +7,6 @@
   </div>
 </template>
 
-
 <script>
 import { mapState } from "vuex";
 import DataBlobList from "@/components/DataBlobList.vue";
@@ -15,6 +14,6 @@ import DataBlobTypeChooser from "@/components/DataBlobTypeChooser.vue";
 
 export default {
   components: { DataBlobTypeChooser },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>

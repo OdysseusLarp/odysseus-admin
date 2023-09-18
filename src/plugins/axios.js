@@ -18,42 +18,42 @@ let config = {
 const _axios = axios.create(config);
 
 _axios.interceptors.request.use(
-  function(config) {
+  function (config) {
     // Do something before request is sent
     return config;
   },
-  function(error) {
+  function (error) {
     // Do something with request error
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add a response interceptor
 _axios.interceptors.response.use(
-  function(response) {
+  function (response) {
     // Do something with response data
     return response;
   },
-  function(error) {
+  function (error) {
     // Do something with response error
     return Promise.reject(error);
-  }
+  },
 );
 
-Plugin.install = function(Vue, options) {
+Plugin.install = function (Vue, options) {
   Vue.axios = _axios;
   window.axios = _axios;
   Object.defineProperties(Vue.prototype, {
     axios: {
       get() {
         return _axios;
-      }
+      },
     },
     $axios: {
       get() {
         return _axios;
-      }
-    }
+      },
+    },
   });
 };
 
@@ -65,21 +65,21 @@ function updateBackend(backend) {
       backend.uri +
       "' " +
       (backend.username ? "with" : "without") +
-      " credentials"
+      " credentials",
   );
   axios.defaults.baseURL = backend.uri;
   if (backend.username) {
     axios.withCredentials = true;
     axios.defaults.auth = {
       username: backend.username,
-      password: backend.password
+      password: backend.password,
     };
   } else {
     axios.defaults.auth = undefined;
   }
 }
 
-store.watch(state => state.backend, updateBackend);
+store.watch((state) => state.backend, updateBackend);
 updateBackend(store.state.backend);
 
 export default Plugin;

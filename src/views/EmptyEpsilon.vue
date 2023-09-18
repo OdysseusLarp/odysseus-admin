@@ -13,6 +13,6 @@ import EmptyEpsilon from "@/components/EmptyEpsilon.vue";
 
 export default {
   components: { EmptyEpsilon },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>

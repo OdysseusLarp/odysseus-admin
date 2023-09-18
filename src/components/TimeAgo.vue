@@ -1,17 +1,12 @@
 <template>
-    <span>
-        <span
-          :id="id"
-          :class="classes">
-            {{formattedTime}}
-        </span>
-        <b-popover :target="id"
-                   placement="right"
-                   triggers="hover"
-                   delay="500">
-          <template>{{fullTime}}</template>
-        </b-popover>
+  <span>
+    <span :id="id" :class="classes">
+      {{ formattedTime }}
     </span>
+    <b-popover :target="id" placement="right" triggers="hover" delay="500">
+      <template>{{ fullTime }}</template>
+    </b-popover>
+  </span>
 </template>
 
 <script>
@@ -19,18 +14,18 @@ export default {
   props: {
     time: {
       type: [String, Number, Date],
-      default: "0"
+      default: "0",
     },
     warn: {
       type: Number,
-      default: 600
-    }
+      default: 600,
+    },
   },
   data() {
     return {
       id: `span-${Math.random()}`,
       now: Date.now(),
-      intervalId: 0
+      intervalId: 0,
     };
   },
   computed: {
@@ -45,7 +40,7 @@ export default {
         return `${Math.floor(mins / 60)} h ${mins % 60} min ago`;
       } else {
         return `${Math.floor(mins / 60 / 24)} d ${Math.floor(
-          (mins / 60) % 24
+          (mins / 60) % 24,
         )} h ago`;
       }
     },
@@ -61,12 +56,12 @@ export default {
         return "text-danger";
       }
       return "";
-    }
+    },
   },
-  mounted: function() {
+  mounted: function () {
     this.intervalId = setInterval(() => (this.now = Date.now()), 5000);
   },
-  beforeDestroy: function() {
+  beforeDestroy: function () {
     clearInterval(this.intervalId);
   },
   methods: {
@@ -81,7 +76,7 @@ export default {
         console.error("Unknown time type", time);
         return 0;
       }
-    }
-  }
+    },
+  },
 };
 </script>

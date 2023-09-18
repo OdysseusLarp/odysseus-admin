@@ -13,6 +13,6 @@ import Operations from "@/components/Operations.vue";
 
 export default {
   components: { Operations },
-  computed: mapState(["backendUri"])
+  computed: mapState(["backendUri"]),
 };
 </script>
