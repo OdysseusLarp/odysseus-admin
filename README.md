@@ -13,7 +13,7 @@ Admin UI (for use by GM's) for the [Odysseus backend](https://github.com/Odysseu
 * Run `npm install` to install dependencies
 * Run `npm run serve` for compiles and hot-reloads for development
 
-HANSCA should now be available at [http://localhost:8090/](http://localhost:8090/)
+Admin UI should now be available at [http://localhost:8090/](http://localhost:8090/)
 
 ## Local setup in VSCode dev container
 
