@@ -289,6 +289,7 @@
 import VueJsonPretty from "vue-json-pretty";
 import { get, isInteger } from "lodash";
 import { pushError } from "../helpers";
+import axios from "axios";
 
 export default {
   components: {
