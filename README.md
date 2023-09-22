@@ -39,6 +39,42 @@ You can also run the app using [VSCode dev containers](https://code.visualstudio
 * Try to rebuild the container: Click the button in left bottom corner (looks like two L:s or disjointed >< with the container name) and choose `Rebuild Container` from the menu.
 * You might run into [this issue](https://github.com/microsoft/vscode-remote-release/issues/7305) on ARM processors, see the issue for potential workarounds.
 
+## Jumping the Odysseus (from Admin UI)
+
+* Make a jump [Admin UI Jump drive tab tab](http://localhost:8090/#/jump)
+    - `Move to calculating` --> OK
+    - `Approve jump` --> OK
+    - `Mark spectral calibration done` --> OK
+    - `Mark jump reactor done` --> OK
+    - `Next state (prep complete)` --> OK
+    - `Initiate jump` --> OK --> Wait 60 seconds
+    - If you want to break the ship click `Change to breaking jump` or `Change to minor breaking jump` --> OK
+    - `End jump` --> OK
+* To continue jumping 
+    - `Bypass engineer fixes` --> OK
+    - `Mark cooldown done` --> OK
+
+## Breaking Odysseus Manually (for testing purposes)
+
+* Go to [Admin UI Empty Epsilon tab](http://localhost:8090/#/emptyepsilon)
+    - `Disable connection` and `Disable state synchronization` (otherwise it will sync back to full health since Empty Epsilon is not running and it defaults to full health)
+    - Break things by `Update values` example
+        - Target type: systems
+        - Target: impulse
+        - Value type: health
+        - Value: 0.7
+        - `Set value`
+
+## Fixing Odysseus Malfunctions (for testing purposes)
+
+* Either use [HANSCA](https://github.com/OdysseusLarp/odysseus-HANSCA)
+* Or from [Admin UI Data stores tab](http://localhost:8090/#/data)
+    - Choose `game` or `box` from dropdown
+    - Scroll to see which `Status` is `broken`
+    - Click the one which is `broken`
+    - Change `"status": "broken",` to `"status": "fixed",`
+    - OK
+
 ## Other Available Scripts
 
 ### Compiles and minifies for production
