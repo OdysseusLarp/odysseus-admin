@@ -182,6 +182,22 @@
               >
             </b-form>
           </div>
+          <div>
+            <h2>Break a task</h2>
+            <b-form>
+              <b-form-group label="Task to break" label-for="selected-type">
+                <b-form-select
+                  id="selected-type"
+                  v-model="selectedTaskToBreak"
+                  :options="tasksNotBroken"
+                ></b-form-select>
+              </b-form-group>
+              <p>{{ taskDealtDamage }}</p>
+              <b-button variant="primary" @click="breakTask()"
+                >Break task</b-button
+              >
+            </b-form>
+          </div>
         </b-col>
       </b-row>
     </b-container>
@@ -239,6 +255,7 @@ export default {
       selectedTarget: systems[0],
       selectedValueType: systemValueTypes[0],
       selectedValue: 1,
+      selectedTaskToBreak: undefined,
     };
   },
   computed: {
@@ -260,6 +277,23 @@ export default {
         (e) => e.type === "ship" && e.id === "metadata",
       );
     },
+    tasksNotBroken() {
+      return this.$store.state.dataBlobs.filter(
+        (e) => e.type === "task" && e.status !== "broken" && e.eeType && e.eeHealth
+      ).map((e) => e.id).sort()
+    },
+    taskDealtDamage() {
+      if (!this.selectedTaskToBreak) {
+        return "";
+      }
+      const task = this.$store.state.dataBlobs.find(
+        (e) => e.type === "task" && e.id === this.selectedTaskToBreak,
+      );
+      if (!task) {
+        return "";
+      }
+      return `Breaking task ${task.id} will cause ${Math.round(task.eeHealth*100)}% damage to ${task.eeType}.`;
+    }
   },
 
   created() {},
@@ -293,6 +327,21 @@ export default {
         value,
         target: selectedTarget,
       });
+    },
+    breakTask() {
+      return axios({
+        url: "/state/break-task",
+        baseURL: this.$store.state.backend.uri,
+        method: "post",
+        data: {
+          taskId: this.selectedTaskToBreak,
+        }
+      })
+        .catch((error) => {
+          this.errors.push("" + error);
+          this.isLoading = false;
+        });
+
     },
     async makeSetValueRequest(data) {
       this.isLoading = true;
