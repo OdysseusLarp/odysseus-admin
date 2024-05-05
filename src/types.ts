@@ -6,9 +6,16 @@ interface DataBlob {
   version: number;
   [x: string]: any;
 }
-
+interface FleetBlob {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  version: number;
+  [x: string]: any;
+}
 export interface State {
   dataBlobs: DataBlob[];
+  fleetBlobs: FleetBlob[];
   info: {
     text: string;
     type: string;
