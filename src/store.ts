@@ -18,6 +18,7 @@ const uri =
 const store = new Vuex.Store<State>({
   state: {
     dataBlobs: [],
+    fleetBlobs: [],
     info: {
       text: "",
       type: "",
@@ -57,6 +58,26 @@ const store = new Vuex.Store<State>({
     },
     setAllDataBlobs(state, datas) {
       state.dataBlobs = datas;
+    },
+    setFleetBlob(state, data) {
+      let found = false;
+      state.fleetBlobs = state.fleetBlobs.map((e) => {
+        if (e.id == data.id) {
+          found = true;
+          return data;
+        } else {
+          return e;
+        }
+      });
+      if (!found) {
+        state.fleetBlobs.push(data);
+      }
+    },
+    deleteFleetBlob(state, data) {
+      state.fleetBlobs = state.fleetBlobs.filter((e) => e.id !== data.id);
+    },
+    setAllFleetBlobs(state, datas) {
+      state.fleetBlobs = datas;
     },
     setInfo(state, info) {
       state.info = info;
