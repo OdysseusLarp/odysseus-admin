@@ -21,14 +21,14 @@
     </p>
     <p>
       <a
-        href="https://docs.google.com/spreadsheets/d/1zF7ON0w8ZFF89w-btlcbMoXc25x8yOZSiLaiF7W-T5I/edit#gid=401779151"
+        href="https://docs.google.com/spreadsheets/d/1mRvZRy1BF4fMMMeLxJHCa-LvVdn0C8GnQVu5wlSvsPE/edit#gid=0"
         target="_blank"
         >DMX channel specifications</a
       >
     </p>
     <p>
       <a
-        href="https://docs.google.com/presentation/d/1nbXQE9N10Zm7uS45eW4R1VvYU4zZQ0PZbRovUq7bA5o/edit#slide=id.g4d32841109_0_0"
+        href="https://docs.google.com/presentation/d/1T3lxvrgauPcpKyM31RYYDEfTDfUCgJVXkqpqUQIjVRU/edit#slide=id.g4d32841109_0_0"
         target="_blank"
         >Jump drive DMX event specifications</a
       >
