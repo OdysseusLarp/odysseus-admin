@@ -61,8 +61,9 @@ v-for="post in pendingPosts" :key="post.id"
     <hr>
     <div>
         <h2>Person actions</h2>
-        <b-input-group prepend="Search" class="mt-3">
-          <b-form-select v-model="selectedShipFilter" :options="allShips" placeholder="Ship"></b-form-select>
+        <h4>Search</h4>
+        <b-input-group prepend="Ship" class="mt-3">
+          <b-form-select v-model="selectedShipFilter" :options="allShips" placeholder="odysseus"></b-form-select>
           <b-form-input v-model="writtenPersonName" placeholder="Person name" @keydown.enter.native="searchPerson"></b-form-input>
           <b-input-group-append>
             <b-button variant="outline-success" @click="searchPerson">Search person</b-button>
@@ -94,10 +95,22 @@ v-for="post in pendingPosts" :key="post.id"
         <div v-if="selectedPerson" class="selected-person">
           <h3>Selected person: {{ selectedPerson.full_name }} <span v-if="!selectedPerson.is_character">(NPC)</span></h3>
           <p><strong>Card ID:</strong>{{selectedPerson.card_id}} &nbsp;&nbsp;&nbsp; <strong>Bio ID:</strong> {{ selectedPerson.bio_id }}</p>
+          <b-input-group prepend="Person last name" class="mt-3">
+            <b-form-input v-model="personLastName"></b-form-input>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonLastName">Set last name</b-button>
+            </b-input-group-append>
+          </b-input-group>
           <b-input-group prepend="Person status" class="mt-3">
             <b-form-select v-model="personStatus" :options="personStatusOptions"></b-form-select>
             <b-input-group-append>
               <b-button variant="outline-success" @click="setPersonStatus">Set status</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person ship" class="mt-3">
+            <b-form-select v-model="personShipId" :options="allShips"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonShipId">Set ship</b-button>
             </b-input-group-append>
           </b-input-group>
           <b-input-group prepend="Person visibility" class="mt-3">
@@ -110,6 +123,30 @@ v-for="post in pendingPosts" :key="post.id"
             <b-form-input v-model="personTitle"></b-form-input>
             <b-input-group-append>
               <b-button variant="outline-success" @click="setPersonTitle">Set title</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person political party" class="mt-3">
+            <b-form-select v-model="personParty" :options="personPartyOptions"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonParty">Set political party</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person dynasty" class="mt-3">
+            <b-form-select v-model="personDynasty" :options="personDynastyOptions"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonDynasty">Set dynasty</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person religion" class="mt-3">
+            <b-form-select v-model="personReligion" :options="personReligionOptions"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonReligion">Set religion</b-button>
+            </b-input-group-append>
+          </b-input-group>
+          <b-input-group prepend="Person military rank" class="mt-3">
+            <b-form-select v-model="personMilitaryRank" :options="personMilitaryRankOptions"></b-form-select>
+            <b-input-group-append>
+              <b-button variant="outline-success" @click="setPersonMilitaryRank">Set military Rank</b-button>
             </b-input-group-append>
           </b-input-group>
           <div class="person-groups-checkboxes">
@@ -184,6 +221,11 @@ export default {
       selectedShipFilter: null,
       allShips: [],
       personStatus: '',
+      personShip: '',
+      personParty: '',
+      personDynasty: '',
+      personReligion: '',
+      personMilitaryRank: '',
       personIsVisible: false,
       personTitle: '',
       unreadTableColumns: [
@@ -245,9 +287,47 @@ export default {
       personVisibleOptions: [
         { value: true, text: 'Visible' },
         { value: false, text: 'Hidden' },
+      ],
+      personPartyOptions: [
+          'Blue Party',
+          'Purple Party',
+          'Yellow Party',
+          'None',
+      ],
+      personDynastyOptions: [
+          'Floater',
+          'Defiance',
+          'Hope',
+          'Mercy',
+          'Purity',
+          'Strength',
+          'Wisdom',
+          'None',
+      ],
+      personReligionOptions: [
+          'Faith of the High Science',
+          'Old Ways',
+          'Other',
+          'None',
+      ],
+      personMilitaryRankOptions: [
+          'Recruit',
+          'Cadet',
+          'Junior Petty Officer',
+          'Petty Officer',
+          'Chief Petty Officer',
+          'Junior Lieutenant',
+          'Lieutenant',
+          'Commander',
+          'Vice Admiral',
+          'Admiral One Star',
+          'Admiral Two Stars',
+          'Admiral Three Stars',
+          'None',
       ]
     };
   },
+
 
   created() {
     // fetch the data when the view is created and the data is already being observed
@@ -309,10 +389,16 @@ export default {
         .then(res => {
           this.selectedPerson = res.data;
           if (!res.data) return;
+          this.personLastName = res.data.last_name;
           this.personStatus = res.data.status;
           this.personGroups = res.data.groups;
+          this.personShipId = res.data.ship_id || 'None';
           this.personIsVisible = res.data.is_visible;
           this.personTitle = res.data.title || '';
+          this.personParty = res.data.political_party || 'None';
+          this.personDynasty = res.data.dynasty || 'None';
+          this.personReligion = res.data.religion || 'None';
+          this.personMilitaryRank = res.data.military_rank || 'None';
         })
         .catch(err => pushError(this.errors, err, this.$notify));
       } else if (this.writtenBioId) {
@@ -320,13 +406,30 @@ export default {
         .then(res => {
           this.selectedPerson = res.data;
           if (!res.data) return;
+          this.personLastName = res.data.last_name;
           this.personStatus = res.data.status;
           this.personGroups = res.data.groups;
+          this.personShipId = res.data.ship_id || 'None';
           this.personIsVisible = res.data.is_visible;
           this.personTitle = res.data.title || '';
+          this.personParty = res.data.political_party || 'None';
+          this.personDynasty = res.data.dynasty || 'None';
+          this.personReligion = res.data.religion || 'None';
+          this.personMilitaryRank = res.data.military_rank || 'None';
         })
         .catch(err => pushError(this.errors, err, this.$notify));
       }
+    },
+    setPersonLastName() {
+      if (!this.selectedPerson) return;
+      this.patchPerson({ last_name: this.personLastName }).then(() => {
+        this.$notify({
+          title: 'Success',
+          text: `Person last name set to ${this.personLastName}`,
+          type: "success",
+        });
+        this.getPerson();
+      });
     },
     setPersonTitle() {
       if (!this.selectedPerson) return;
@@ -353,7 +456,42 @@ export default {
     setPersonStatus() {
       this.patchPerson({ status: this.personStatus.trim() }).then(() => this.$notify({
         title: 'Success',
-        text: 'Status updated',
+        text: `Status updated to ${this.personStatus}`,
+        type: "success",
+      }));
+    },
+    setPersonShipId() {
+      this.patchPerson({ ship_id: this.personShipId.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person ship set to ${this.personShipId}`,
+        type: "success",
+      }));
+    },
+    setPersonParty() {
+      this.patchPerson({ political_party: this.personParty.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person political party set to ${this.personParty}`,
+        type: "success",
+      }));
+    },
+    setPersonDynasty() {
+      this.patchPerson({ dynasty: this.personDynasty.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person dynasty set to ${this.personDynasty}`,
+        type: "success",
+      }));
+    },
+    setPersonReligion() {
+      this.patchPerson({ religion: this.personReligion.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person religion set to ${this.personReligion}`,
+        type: "success",
+      }));
+    },
+    setPersonMilitaryRank() {
+      this.patchPerson({ military_rank: this.personMilitaryRank.trim() }).then(() => this.$notify({
+        title: 'Success',
+        text: `Person military rank set to ${this.personMilitaryRank}`,
         type: "success",
       }));
     },
@@ -531,6 +669,9 @@ button {
 }
 .selected-person {
   margin-top: 15px
+}
+h3 {
+  padding-top: 25px
 }
 .action-button {
   margin: 12px auto;
