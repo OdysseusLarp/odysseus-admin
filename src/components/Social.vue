@@ -76,7 +76,9 @@ v-for="post in pendingPosts" :key="post.id"
                 <b-badge v-if="person.title" pill variant="light"> {{ person.title }}</b-badge>
                 <b-badge pill variant="primary">{{ person.status }}</b-badge>
                 <b-badge v-if="person.ship" pill variant="secondary">{{ person.ship.id }}</b-badge>
-                <!--<b-badge pill variant="warning" v-if="!person.is_character">NPC</b-badge>-->
+                <b-badge v-if="person.is_character === false" pill variant="warning" >NPC</b-badge>
+                <b-badge v-if="person.is_character === true" pill variant="warning" >Character</b-badge>
+                <b-badge v-if="person.is_character === null" pill variant="danger" >Random generated NPC</b-badge>
               </li>
           </ul>
         </div>
@@ -172,6 +174,26 @@ v-for="post in pendingPosts" :key="post.id"
         </div>
     </div>
     <hr>
+    <div>
+      <h2>Artifact actions</h2>
+      <h4>Search</h4>
+      <b-input-group prepend="Artifact Catalog ID" class="mt-3">
+        <b-form-input v-model="writtenArtifactCatalogId" @keydown.enter.native="getArtifact"></b-form-input>
+        <b-input-group-append>
+          <b-button variant="outline-success" @click="getArtifact">Get artifact</b-button>
+        </b-input-group-append>
+      </b-input-group>
+      <div v-if="selectedArtifact" class="selected-artifact">
+        <h3>Selected artifact: {{ selectedArtifact.catalog_id }} <span>({{ selectedArtifact.name }})</span></h3>
+        <b-input-group prepend="Artifact is visible" class="mt-3">
+          <b-form-select v-model="artifactIsVisible" :options="artifactIsVisibleOptions"></b-form-select>
+          <b-input-group-append>
+            <b-button variant="outline-success" @click="setArtifactIsVisible">Set artifact visibility</b-button>
+          </b-input-group-append>
+        </b-input-group>
+      </div>
+    </div>
+    <hr>
     <div v-if="!!auditLogEntries.length">
       <h2>Datahub audit log</h2>
       <p>
@@ -213,6 +235,8 @@ export default {
       formattedUnreadMessages: [],
       showNpcUnreadMessagesOnly: true,
       showNpcAuditLog: false,
+      writtenArtifactCatalogId: '',
+      selectedArtifact: null,
       writtenPersonId: '',
       writtenBioId: '',
       writtenPersonName: '',
@@ -324,7 +348,11 @@ export default {
           'Admiral Two Stars',
           'Admiral Three Stars',
           'None',
-      ]
+      ],
+      artifactIsVisibleOptions: [
+        { value: true, text: 'Visible' },
+        { value: false, text: 'Hidden' },
+      ],
     };
   },
 
@@ -358,6 +386,11 @@ export default {
       if (!(person && person.id)) return;
       this.writtenPersonId = person.id;
       this.getPerson();
+    },
+    async selectArtifact(artifact) {
+      if (!(artifact && artifact.catalog_id)) return;
+      this.writtenArtifactCatalogId = artifact.catalog_id;
+      this.getArtifact();
     },
     formatVoteSubtitle(vote) {
       return `Created by ${vote.author.full_name} at ${vote.created_at}`;
@@ -419,6 +452,32 @@ export default {
         })
         .catch(err => pushError(this.errors, err, this.$notify));
       }
+    },
+    getArtifact() {
+      this.selectedArtifact = null;
+      if (this.writtenArtifactCatalogId) {
+        axios.get(`/science/artifact/catalog/${this.writtenArtifactCatalogId}`)
+        .then(res => {
+          this.selectedArtifact = res.data;
+          if (!res.data) return;
+          this.artifactIsVisible = res.data.is_visible;
+        })
+        .catch(err => pushError(this.errors, err, this.$notify));
+      }
+    },
+    setArtifactIsVisible() {
+      if (!this.selectedArtifact) return;
+      const artifactToPatch = {...this.selectedArtifact, is_visible: this.artifactIsVisible }
+      delete artifactToPatch.entries;
+      console.log(artifactToPatch);
+      this.patchArtifact(artifactToPatch).then(() => {
+        this.$notify({
+          title: 'Success',
+          text: `Artifact visibility is set to ${this.artifactIsVisible}`,
+          type: "success",
+        });
+        this.getArtifact();
+      });
     },
     setPersonLastName() {
       if (!this.selectedPerson) return;
@@ -499,6 +558,15 @@ export default {
       return axios.put(`/person/${this.selectedPerson.id}`, patch)
         .then(() => {
           this.getPerson();
+        }).catch(error => {
+          this.handleError(error);
+          throw error;
+        });
+    },
+    patchArtifact(patch) {
+      return axios.put(`/science/artifact/`, patch)
+        .then(() => {
+          this.getArtifact();
         }).catch(error => {
           this.handleError(error);
           throw error;
