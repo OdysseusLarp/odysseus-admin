@@ -44,7 +44,8 @@ You can also run the app using [VSCode dev containers](https://code.visualstudio
 * Make a jump [Admin UI Jump drive tab tab](http://localhost:8090/#/jump)
     - `Move to calculating` --> OK
     - `Approve jump` --> OK
-    - `Mark spectral calibration done` --> OK
+    - (**Expired!** `Mark spectral calibration done` --> OK)
+    - `Mark jump crystal change done`
     - `Mark jump reactor done` --> OK
     - `Next state (prep complete)` --> OK
     - `Initiate jump` --> OK --> Wait 60 seconds

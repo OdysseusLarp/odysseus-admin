@@ -65,8 +65,8 @@
         <tr v-if="jump.status === 'preparation'">
           <th>Prep tasks:</th>
           <td class="value">
-            <span :class="spectralCalibrationStatus"
-              >Spectral calibration: {{ spectralCalibrationStatus }}</span
+            <span :class="jumpCrystalStatus"
+              >Jump crystal inserted: {{ jumpCrystalStatus }}</span
             ><br />
             <span :class="jumpReactorStatus"
               >Jump reactor: {{ jumpReactorStatus }}</span
@@ -112,28 +112,28 @@
       </div>
       <div v-if="jump.status === 'preparation'">
         <b-button
-          v-if="spectralCalibrationStatus === 'broken'"
-          variant="primary"
-          @click="
-            writeBlob({
-              type: 'box',
-              id: 'jump_drive_spectral_calibration',
-              status: 'fixed',
-            })
-          "
-          >Mark spectral calibration done</b-button
-        >
-        <b-button
-          v-if="spectralCalibrationStatus !== 'broken'"
+          v-if="jumpCrystalStatus === 'broken'"
           variant="danger"
           @click="
             writeBlob({
-              type: 'box',
-              id: 'jump_drive_spectral_calibration',
+              type: 'game',
+              id: 'jump_drive_insert_jump_crystal',
+              status: 'fixed',
+            })
+          "
+          >Mark jump crystal insertion done</b-button
+        >
+        <b-button
+          v-if="jumpCrystalStatus !== 'broken'"
+          variant="danger"
+          @click="
+            writeBlob({
+              type: 'game',
+              id: 'jump_drive_insert_jump_crystal',
               status: 'broken',
             })
           "
-          >Mark spectral calibration NOT done</b-button
+          >Mark jump crystal insertion NOT done</b-button
         >
         <b-button
           v-if="jumpReactorStatus === 'broken'"
@@ -351,10 +351,10 @@ export default {
     jumpSecs() {
       return (Date.now() - this.jump.last_jump) / 1000;
     },
-    spectralCalibrationStatus() {
+    jumpCrystalStatus() {
       return this.$store.state.dataBlobs.find(
         (blob) =>
-          blob.type === "task" && blob.id === "jump_drive_spectral_calibration",
+          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal",
       ).status;
     },
     jumpReactorStatus() {
