@@ -62,6 +62,17 @@
           <th>Coherence:</th>
           <td class="value">{{ jumpstate.coherence }}%</td>
         </tr>
+        <tr>
+          <th>Jump crystal count:</th>
+          <td class="value">
+            {{ jumpCrystalCount }}
+          </td>
+          <td>
+            <b-button variant="outline-primary" @click="fetchJumpCrystalCount()"
+              >Refresh ship data (data age: {{ fetchAgo }}s)</b-button
+            >
+          </td>
+        </tr>
         <tr v-if="jump.status === 'preparation'">
           <th>Prep tasks:</th>
           <td class="value">
@@ -283,6 +294,7 @@
 <script>
 import TimeAgo from "../components/TimeAgo";
 import axios from "axios";
+import { get } from "lodash";
 const DESCRIPTION = {
   broken: "Jump drive broken, pending engineers to perform fixing tasks.",
   cooldown:
@@ -311,6 +323,10 @@ export default {
   data() {
     return {
       jumpLength: undefined,
+      odysseus: null,
+      jumpCrystalCount: 0,
+      fetchAgo: 0,
+      fetchTimestamp: Date.now(),
     };
   },
   computed: {
@@ -369,6 +385,25 @@ export default {
         return undefined;
       }
     },
+  },
+  created() {
+    // fetch the data when the view is created and the data is already being observed
+    this.fetchJumpCrystalCount();
+    if (this.$store.state.backend.autoRefresh > 0.5) {
+      this.timer = setInterval(
+        this.fetchJumpCrystalCount,
+        this.$store.state.backend.autoRefresh * 1000,
+      );
+    }
+    // Calculate data age every second
+    this.dataAgeTimer = setInterval(() => this.calculateDataAge(), 1000);
+  },
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+    clearInterval(this.dataAgeTimer);
   },
   methods: {
     write(data) {
@@ -458,6 +493,28 @@ export default {
       if (minutes) {
         this.write({ last_jump: this.jump.last_jump + minutes * 60 * 1000 });
       }
+    },
+    async fetchJumpCrystalCount() {
+      this.isLoading = true;
+      await axios
+        .get("/fleet/odysseus", {
+          baseURL: this.$store.state.backend.uri,
+        })
+        .then((response) => {
+          this.odysseus = response.data;
+          this.fetchTimestamp = Date.now();
+          this.calculateDataAge();
+          this.jumpCrystalCount = get(
+            this.odysseus,
+            "metadata.jump_crystal_count",
+            0,
+          );
+        })
+        .catch(this.handleError);
+      this.isLoading = false;
+    },
+    calculateDataAge() {
+      this.fetchAgo = Math.ceil((Date.now() - this.fetchTimestamp) / 1000);
     },
   },
 };
