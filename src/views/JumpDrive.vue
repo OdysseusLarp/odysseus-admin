@@ -69,7 +69,7 @@
           </td>
           <td>
             <b-button variant="outline-primary" @click="fetchJumpCrystalCount()"
-              >Refresh ship data (data age: {{ fetchAgo }}s)</b-button
+              >Refresh crystal count (data age: {{ fetchAgo }}s)</b-button
             >
           </td>
         </tr>
