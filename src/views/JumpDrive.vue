@@ -62,11 +62,22 @@
           <th>Coherence:</th>
           <td class="value">{{ jumpstate.coherence }}%</td>
         </tr>
+        <tr>
+          <th>Jump crystal count:</th>
+          <td class="value">
+            {{ jumpCrystalCount }}
+          </td>
+          <td>
+            <b-button variant="outline-primary" @click="fetchJumpCrystalCount()"
+              >Refresh crystal count (data age: {{ fetchAgo }}s)</b-button
+            >
+          </td>
+        </tr>
         <tr v-if="jump.status === 'preparation'">
           <th>Prep tasks:</th>
           <td class="value">
-            <span :class="spectralCalibrationStatus"
-              >Spectral calibration: {{ spectralCalibrationStatus }}</span
+            <span :class="jumpCrystalStatus"
+              >Jump crystal inserted: {{ jumpCrystalStatus }}</span
             ><br />
             <span :class="jumpReactorStatus"
               >Jump reactor: {{ jumpReactorStatus }}</span
@@ -112,28 +123,28 @@
       </div>
       <div v-if="jump.status === 'preparation'">
         <b-button
-          v-if="spectralCalibrationStatus === 'broken'"
-          variant="primary"
-          @click="
-            writeBlob({
-              type: 'box',
-              id: 'jump_drive_spectral_calibration',
-              status: 'fixed',
-            })
-          "
-          >Mark spectral calibration done</b-button
-        >
-        <b-button
-          v-if="spectralCalibrationStatus !== 'broken'"
+          v-if="jumpCrystalStatus === 'broken'"
           variant="danger"
           @click="
             writeBlob({
-              type: 'box',
-              id: 'jump_drive_spectral_calibration',
+              type: 'game',
+              id: 'jump_drive_insert_jump_crystal',
+              status: 'fixed',
+            })
+          "
+          >Mark jump crystal insertion done</b-button
+        >
+        <b-button
+          v-if="jumpCrystalStatus !== 'broken'"
+          variant="danger"
+          @click="
+            writeBlob({
+              type: 'game',
+              id: 'jump_drive_insert_jump_crystal',
               status: 'broken',
             })
           "
-          >Mark spectral calibration NOT done</b-button
+          >Mark jump crystal insertion NOT done</b-button
         >
         <b-button
           v-if="jumpReactorStatus === 'broken'"
@@ -283,6 +294,7 @@
 <script>
 import TimeAgo from "../components/TimeAgo";
 import axios from "axios";
+import { get } from "lodash";
 const DESCRIPTION = {
   broken: "Jump drive broken, pending engineers to perform fixing tasks.",
   cooldown:
@@ -311,6 +323,10 @@ export default {
   data() {
     return {
       jumpLength: undefined,
+      odysseus: null,
+      jumpCrystalCount: 0,
+      fetchAgo: 0,
+      fetchTimestamp: Date.now(),
     };
   },
   computed: {
@@ -351,10 +367,10 @@ export default {
     jumpSecs() {
       return (Date.now() - this.jump.last_jump) / 1000;
     },
-    spectralCalibrationStatus() {
+    jumpCrystalStatus() {
       return this.$store.state.dataBlobs.find(
         (blob) =>
-          blob.type === "task" && blob.id === "jump_drive_spectral_calibration",
+          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal",
       ).status;
     },
     jumpReactorStatus() {
@@ -369,6 +385,25 @@ export default {
         return undefined;
       }
     },
+  },
+  created() {
+    // fetch the data when the view is created and the data is already being observed
+    this.fetchJumpCrystalCount();
+    if (this.$store.state.backend.autoRefresh > 0.5) {
+      this.timer = setInterval(
+        this.fetchJumpCrystalCount,
+        this.$store.state.backend.autoRefresh * 1000,
+      );
+    }
+    // Calculate data age every second
+    this.dataAgeTimer = setInterval(() => this.calculateDataAge(), 1000);
+  },
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+    clearInterval(this.dataAgeTimer);
   },
   methods: {
     write(data) {
@@ -458,6 +493,28 @@ export default {
       if (minutes) {
         this.write({ last_jump: this.jump.last_jump + minutes * 60 * 1000 });
       }
+    },
+    async fetchJumpCrystalCount() {
+      this.isLoading = true;
+      await axios
+        .get("/fleet/odysseus", {
+          baseURL: this.$store.state.backend.uri,
+        })
+        .then((response) => {
+          this.odysseus = response.data;
+          this.fetchTimestamp = Date.now();
+          this.calculateDataAge();
+          this.jumpCrystalCount = get(
+            this.odysseus,
+            "metadata.jump_crystal_count",
+            0,
+          );
+        })
+        .catch(this.handleError);
+      this.isLoading = false;
+    },
+    calculateDataAge() {
+      this.fetchAgo = Math.ceil((Date.now() - this.fetchTimestamp) / 1000);
     },
   },
 };
