@@ -202,9 +202,25 @@
           :variant="
             jump.breaking_jump && jumpSecs < 6 * 60 ? 'danger' : 'primary'
           "
-          @click="write({ status: 'broken', last_jump_override })"
-          >End jump</b-button
+          @click="endJumpWithWarning()"
+          >End jump with {{ jump.jump_end_warning_secs }}s warning</b-button
         >
+        <b-button
+          :variant="secondary"
+          @click="fireJumpEndingSoonSignal()"
+          >Fire ending DMX signal</b-button
+        >
+        <b-button
+          :variant="secondary"
+          @click="endJump()"
+          >End jump immediately</b-button
+        >
+        <b-button
+          variant="danger"
+          @click="write({ status: 'cooldown', last_jump_override })"
+          >End jump without breaking tasks (go to 'cooldown' state)</b-button
+        >
+        <p></p>
         <b-button
           :variant="jumpSecs < 5 * 60 ? 'secondary' : 'danger'"
           @click="write({ breaking_jump: true })"
@@ -223,11 +239,6 @@
           "
           @click="write({ breaking_jump: false, minor_breaking_jump: false })"
           >Change to non-breaking jump</b-button
-        >
-        <b-button
-          variant="danger"
-          @click="write({ status: 'cooldown', last_jump_override })"
-          >End jump without breaking tasks (go to 'cooldown' state)</b-button
         >
         <br />(Switching between major breaking / (minor/non)-breaking jump
         should be done before 5min mark - after that A/V might not react
@@ -332,12 +343,12 @@ export default {
   computed: {
     jump() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "ship" && blob.id === "jump",
+        (blob) => blob.type === "ship" && blob.id === "jump"
       );
     },
     jumpstate() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "ship" && blob.id === "jumpstate",
+        (blob) => blob.type === "ship" && blob.id === "jumpstate"
       );
     },
     jumpCoordinates() {
@@ -370,12 +381,12 @@ export default {
     jumpCrystalStatus() {
       return this.$store.state.dataBlobs.find(
         (blob) =>
-          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal",
+          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal"
       ).status;
     },
     jumpReactorStatus() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "task" && blob.id === "jump_reactor",
+        (blob) => blob.type === "task" && blob.id === "jump_reactor"
       ).status;
     },
     last_jump_override() {
@@ -392,7 +403,7 @@ export default {
     if (this.$store.state.backend.autoRefresh > 0.5) {
       this.timer = setInterval(
         this.fetchJumpCrystalCount,
-        this.$store.state.backend.autoRefresh * 1000,
+        this.$store.state.backend.autoRefresh * 1000
       );
     }
     // Calculate data age every second
@@ -406,11 +417,12 @@ export default {
     clearInterval(this.dataAgeTimer);
   },
   methods: {
-    write(data) {
+    write(data, no_confirm = false) {
       if (
+        no_confirm ||
         confirm(
           "Do you want to update the state?\n" +
-            JSON.stringify(data, undefined, 2),
+            JSON.stringify(data, undefined, 2)
         )
       ) {
         console.log("Writing jump drive state:", data);
@@ -434,11 +446,12 @@ export default {
         this.jumpLength = undefined;
       }
     },
-    writeBlob(data) {
+    writeBlob(data, no_confirm = false) {
       if (
+        no_confirm ||
         confirm(
           "Do you want to update the data blob?\n" +
-            JSON.stringify(data, undefined, 2),
+            JSON.stringify(data, undefined, 2)
         )
       ) {
         console.log("Writing data blob:", data);
@@ -461,6 +474,51 @@ export default {
           });
       }
     },
+    fireJumpEndingSoonSignal(no_confirm = false) {
+      if (
+        no_confirm ||
+        confirm("Do you want to fire JumpEndingSoon signal?")
+      ) {
+        return axios
+          .post(`/dmx/event/JumpEndingSoon`)
+          .then((response) => {
+            this.$notify({
+              title: `Fired DMX event JumpEndingSoon`,
+              text: ``,
+              type: "success",
+              duration: 3000,
+            });
+          })
+          .catch((error) => {
+            console.log("Error firing event:", error);
+            this.$notify({
+              title: "Error firing DMX event, aborting",
+              text: "" + error,
+              type: "error",
+            });
+            throw error;
+          });
+      }
+    },
+    endJump(no_confirm = false) {
+      this.write({ status: "broken", last_jump_override: this.last_jump_override }, no_confirm);
+    },
+    endJumpWithWarning() {
+      const durationSecs = this.jump.jump_end_warning_secs;
+      if (
+        confirm(
+          `Fire JumpEndingSoon signal and end jump in ${durationSecs} secs?`
+        )
+      ) {
+        this.fireJumpEndingSoonSignal(true).then(() => {
+          setTimeout(() => {
+            if (this.jump.status === "jumping") {
+              this.endJump(true);
+            }
+          }, durationSecs * 1000);
+        });
+      }
+    },
     initialize() {
       const minutes = prompt("Duration IN MINUTES since the previous jump:");
       if (minutes && minutes.match(/^[0-9]+$/)) {
@@ -478,7 +536,7 @@ export default {
     },
     changeNextJumpDuration() {
       const minutes = prompt(
-        "How many MINUTES is the next jump cycle (2h 47min = 167 minutes), cancel to reset to default:",
+        "How many MINUTES is the next jump cycle (2h 47min = 167 minutes), cancel to reset to default:"
       );
       if (minutes) {
         this.jumpLength = minutes * 60 * 1000;
@@ -488,7 +546,7 @@ export default {
     },
     changeCurrentJumpDuration() {
       const minutes = prompt(
-        "How many MINUTES to postpone regulation jump (and cooldown, if not complete)?\nPOSITIVE will delay next jump, NEGATIVE will allow jumping earlier",
+        "How many MINUTES to postpone regulation jump (and cooldown, if not complete)?\nPOSITIVE will delay next jump, NEGATIVE will allow jumping earlier"
       );
       if (minutes) {
         this.write({ last_jump: this.jump.last_jump + minutes * 60 * 1000 });
@@ -507,7 +565,7 @@ export default {
           this.jumpCrystalCount = get(
             this.odysseus,
             "metadata.jump_crystal_count",
-            0,
+            0
           );
         })
         .catch(this.handleError);
