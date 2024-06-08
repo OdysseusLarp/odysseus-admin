@@ -119,6 +119,10 @@
           @click="write({ status: 'ready_to_prep' })"
           >Reject jump</b-button
         >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
         (Approve or reject proposed jump coordinates)
       </div>
       <div v-if="jump.status === 'preparation'">
@@ -165,6 +169,10 @@
         <b-button variant="danger" @click="write({ status: 'prep_complete' })"
           >Next state (prep complete)</b-button
         >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
         (Will move forward once all tasks are done and calibrated)
       </div>
       <div v-if="jump.status === 'prep_complete'">
@@ -174,6 +182,10 @@
         <b-button variant="danger" @click="write({ status: 'jump_initiated' })"
           >Initiate breaking jump</b-button
         >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
         <br />(Marking as ready will skip the ready countdown and allow
         non-breaking jump immediately. Initiation will start 60s countdown.)
       </div>
@@ -181,11 +193,19 @@
         <b-button variant="danger" @click="write({ status: 'jump_initiated' })"
           >Initiate jump</b-button
         >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
         (Initiation will start 60s countdown.)
       </div>
       <div v-if="jump.status === 'jump_initiated'">
         <b-button variant="danger" @click="write({ status: 'prep_complete' })"
           >Abort jump</b-button
+        >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
         >
         (Aborting can be done during 60s countdown.)
       </div>
@@ -205,14 +225,10 @@
           @click="endJumpWithWarning()"
           >End jump with {{ jump.jump_end_warning_secs }}s warning</b-button
         >
-        <b-button
-          :variant="secondary"
-          @click="fireJumpEndingSoonSignal()"
+        <b-button :variant="secondary" @click="fireJumpEndingSoonSignal()"
           >Fire ending DMX signal</b-button
         >
-        <b-button
-          :variant="secondary"
-          @click="endJump()"
+        <b-button :variant="secondary" @click="endJump()"
           >End jump immediately</b-button
         >
         <b-button
@@ -243,19 +259,23 @@
         <br />(Switching between major breaking / (minor/non)-breaking jump
         should be done before 5min mark - after that A/V might not react
         correctly, but breakage will work as expected. Breaking jump should not
-        be ended before 6min mark due to A/V.)
+        be ended before 6min mark due to A/V. Jump mood:
+        <strong
+          >{{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }}</strong
+        >)
       </div>
       <div style="margin-top: 1em">
         <b-button
           v-if="jump.status !== 'jumping' && jump.status !== 'jump_initiated'"
           variant="outline-secondary"
-          @click="changeCurrentJumpDuration"
+          @click="changeCurrentJumpDuration()"
           >Change current jump cycle length</b-button
         >
         <b-button
           v-if="jump.status === 'jumping'"
           variant="outline-secondary"
-          @click="changeNextJumpDuration"
+          @click="changeNextJumpDuration()"
           >Change next jump cycle length</b-button
         >
       </div>
@@ -277,7 +297,7 @@
         the jump drive to 'cooldown' state with proper last jump time. Jump
         cycle 2h 47min = 167 minutes, cooldown time 2h 15min = 135 minutes.
       </p>
-      <b-button variant="danger" @click="initialize"
+      <b-button variant="danger" @click="initialize()"
         >Initialize jump drive</b-button
       >
 
@@ -324,6 +344,12 @@ const DESCRIPTION = {
     "Ship is jumping. GMs can change whether this is a breaking or non-breaking jump (preferably during first 5 min of jump).",
 };
 
+const MOODS = {
+  1: "Heroic",
+  2: "Cautious",
+  3: "Melancholy",
+};
+
 const HOUR = 60 * 60 * 1000;
 const MIN = 60 * 1000;
 
@@ -363,6 +389,9 @@ export default {
     statusDescription() {
       const desc = DESCRIPTION[this.jump.status];
       return desc ? desc : "Unknown state, something is wrong!";
+    },
+    moodDescriptions() {
+      return MOODS;
     },
     temperature() {
       let desc;
@@ -475,10 +504,7 @@ export default {
       }
     },
     fireJumpEndingSoonSignal(no_confirm = false) {
-      if (
-        no_confirm ||
-        confirm("Do you want to fire JumpEndingSoon signal?")
-      ) {
+      if (no_confirm || confirm("Do you want to fire JumpEndingSoon signal?")) {
         return axios
           .post(`/dmx/event/JumpEndingSoon`)
           .then((response) => {
@@ -501,7 +527,10 @@ export default {
       }
     },
     endJump(no_confirm = false) {
-      this.write({ status: "broken", last_jump_override: this.last_jump_override }, no_confirm);
+      this.write(
+        { status: "broken", last_jump_override: this.last_jump_override },
+        no_confirm
+      );
     },
     endJumpWithWarning() {
       const durationSecs = this.jump.jump_end_warning_secs;
@@ -532,6 +561,21 @@ export default {
           minor_breaking_jump: true, // first jump is always minor-breaking
         };
         this.write(state);
+      }
+    },
+    changeMood() {
+      const moods = Object.keys(MOODS)
+        .map((n) => `${n} = ${MOODS[n]}`)
+        .join(", ");
+      const nextMood = prompt(`Choose next jump mood (${moods}):`);
+      if (nextMood) {
+        if (MOODS[nextMood]) {
+          this.write({ next_jump_mood: nextMood }, true).alert(
+            `Jump mood changed to ${nextMood} (${MOODS[nextMood]})`
+          );
+        } else {
+          alert(`Invalid mood: ${nextMood}`);
+        }
       }
     },
     changeNextJumpDuration() {
