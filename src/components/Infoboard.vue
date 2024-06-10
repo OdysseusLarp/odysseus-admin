@@ -65,7 +65,7 @@
         <p class="card-text">
           {{ infoboard.body }}
         </p>
-        <p>Set: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }}</p>
+        <p>Set: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }} </br>Active until: {{ infoboard.active_until }}</p>
         <b-button
           v-b-modal.infoboard-entry-modal
           size="sm"
