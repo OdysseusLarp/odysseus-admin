@@ -719,6 +719,7 @@ export default {
         voters = 'Voting open for ' + this.getVotingMessage(vote.allowed_voters);
 
       }
+      
       const end_time = (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
       const postBody = voters + '</br>Voting ends at: ' + end_time;
       const postData = {"priority":1,"enabled":true,"title": "Vote: " + vote.title,"body": postBody, "active_until":vote.active_until};
