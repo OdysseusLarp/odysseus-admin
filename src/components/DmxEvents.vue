@@ -4,8 +4,8 @@
     <p>
       <select v-model="selectedChannel">
         <option disabled>Choose channel</option>
-        <option v-for="c in Object.keys(channels)" :key="c" :value="c">
-          {{ c }} ({{ channels[c] }})
+        <option v-for="c in Object.keys(channels)" :key="c" :value="c" :disabled="!channels[c]">
+          {{ c }} {{ channels[c] ? `(${channels[c]})` : ""}}
         </option>
       </select>
       &nbsp;&nbsp;&nbsp;
