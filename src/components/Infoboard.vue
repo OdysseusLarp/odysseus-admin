@@ -60,17 +60,24 @@
         :key="i"
         :class="'card'"
         :title="infoboard.title"
-        :sub-title="infoboard.created_at"
+        :sub-title="'Created on ' + formatDate(infoboard.created_at)"
       >
-        <p class="card-text">
-          {{ infoboard.body }}
-        </p>
-        <p>Set: {{ infoboard.priority }} Enabled: {{ infoboard.enabled }} </br>Active until: {{ infoboard.active_until }}</p>
+        <div class="badges">
+          <b-badge v-if="infoboard.enabled" variant="success">Enabled</b-badge>
+          <b-badge v-else variant="secondary">Disabled</b-badge>
+          <b-badge variant="info">Set {{ infoboard.priority }}</b-badge>
+          <b-badge v-if="infoboard.active_until" variant="primary"
+            >Active until {{ formatDate(infoboard.active_until) }} ({{ formatDuration(infoboard.active_until) }})</b-badge>
+        </div>
+        <div class="card-text">
+          <pre>{{ infoboard.body }}</pre>
+        </div>
         <b-button
           v-b-modal.infoboard-entry-modal
           size="sm"
           class="my-2 my-sm-0"
           entry="'infoboard'"
+          variant="primary"
           @click="sendInfo(infoboard)"
           >Edit infoboard entry</b-button
         >
@@ -137,6 +144,7 @@
 <script>
 import axios from "axios";
 import { pushError } from "../helpers";
+import { format, distanceInWordsToNow } from "date-fns";
 
 const emptyEntry = { priority: 1, title: "", body: "", enabled: true };
 
@@ -177,6 +185,12 @@ export default {
     },
     handleError(error) {
       pushError(this.errors, error, this.$notify);
+    },
+    formatDate(date) {
+      return date ? format(new Date(date), "dddd HH:mm:ss") : "";
+    },
+    formatDuration(date) {
+      return date ? distanceInWordsToNow(date) : "";
     },
     async addInfoboardEntry(entry) {
       if (!entry.priority || !entry.title || !entry.body) {
@@ -272,6 +286,14 @@ export default {
 <style lang="scss" scoped>
 button {
   margin-right: 15px;
+}
+.badges {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1rem;
+}
+.badges > *:not(:last-child) {
+  margin-right: 5px;
 }
 .wrapper {
   padding: 15px;
