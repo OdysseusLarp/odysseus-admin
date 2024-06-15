@@ -6,7 +6,6 @@ interface DataBlob {
   version: number;
   [x: string]: any;
 }
-
 export interface State {
   dataBlobs: DataBlob[];
   info: {

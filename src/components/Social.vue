@@ -1,47 +1,38 @@
 <template>
   <div class="wrapper">
     <b-container v-for="(error, i) in errors" :key="error" fluid>
-      <b-alert
-variant="danger" show
-        dismissible
-        :hover="true"
-        @dismissed="removeError(i)"><strong>Error: </strong>{{ error }}</b-alert>
+      <b-alert variant="danger" show dismissible :hover="true" @dismissed="removeError(i)"><strong>Error: </strong>{{
+        error }}</b-alert>
     </b-container>
     <div v-if="!!pendingVotes.length">
-        <h2>Pending new votes</h2>
-        <b-card
-v-for="vote in pendingVotes" :key="vote.id"
-            class="card"
-            :title="vote.title"
-            :sub-title="formatVoteSubtitle(vote)">
-            <p class="card-text">{{ vote.description }}</p>
-            <p class="card-text">
-                <ul>
-                    <li>Will be active for: {{ vote.duration_minutes }} minutes</li>
-                    <li>Allowed voters: {{ vote.allowed_voters }}</li>
-                    <li>Vote options: {{ vote.options.map(o => o.text).join(', ') }}</li>
-                </ul>
-            </p>
-            <b-button variant="success" @click="updateVoteStatus(vote.id, 'APPROVED')">Approve</b-button>
-            <b-button variant="danger" @click="updateVoteStatus(vote.id, 'REJECTED')">Reject</b-button>
-        </b-card>
+      <h2>Pending new votes</h2>
+      <b-card v-for="vote in pendingVotes" :key="vote.id" class="card" :title="vote.title"
+        :sub-title="formatVoteSubtitle(vote)">
+        <p class="card-text">{{ vote.description }}</p>
+        <p class="card-text">
+        <ul>
+          <li>Will be active for: {{ vote.duration_minutes }} minutes</li>
+          <li>Allowed voters: {{ vote.allowed_voters }}</li>
+          <li>Vote options: {{ vote.options.map(o => o.text).join(', ') }}</li>
+        </ul>
+        </p>
+        <b-button variant="success" @click="updateVoteStatus(vote.id, 'APPROVED')">Approve</b-button>
+        <b-button variant="danger" @click="updateVoteStatus(vote.id, 'REJECTED')">Reject</b-button>
+      </b-card>
     </div>
     <div v-else>
       No pending votes.
     </div>
     <div v-if="!!pendingPosts.length">
-        <h2>Pending new posts</h2>
-        <b-card
-v-for="post in pendingPosts" :key="post.id"
-            class="card"
-            :title="post.title"
-            :sub-title="formatPostSubtitle(post)">
-            <p class="card-text">
-              <vue-markdown :source="post.body"></vue-markdown>
-            </p>
-            <b-button variant="success" @click="updatePostStatus(post.id, 'APPROVED')">Approve</b-button>
-            <b-button variant="danger" @click="updatePostStatus(post.id, 'REJECTED')">Reject</b-button>
-        </b-card>
+      <h2>Pending new posts</h2>
+      <b-card v-for="post in pendingPosts" :key="post.id" class="card" :title="post.title"
+        :sub-title="formatPostSubtitle(post)">
+        <p class="card-text">
+          <vue-markdown :source="post.body"></vue-markdown>
+        </p>
+        <b-button variant="success" @click="updatePostStatus(post.id, 'APPROVED')">Approve</b-button>
+        <b-button variant="danger" @click="updatePostStatus(post.id, 'REJECTED')">Reject</b-button>
+      </b-card>
     </div>
     <div v-else>
       No pending posts.
@@ -215,6 +206,7 @@ import VueMarkdown from "vue-markdown";
 import { distanceInWordsStrict } from 'date-fns';
 import { difference } from 'lodash';
 import { pushError } from '../helpers';
+import { format } from "date-fns";
 
 export default {
   components: {
@@ -302,11 +294,11 @@ export default {
         },
       ],
       personStatusOptions: [
-          'Killed in action',
-          'Missing in action',
-          'Present and accounted for',
-          'Unknown',
-          'Deceased',
+        'Killed in action',
+        'Missing in action',
+        'Present and accounted for',
+        'Unknown',
+        'Deceased',
       ],
       personVisibleOptions: [
         { value: true, text: 'Visible' },
@@ -393,12 +385,11 @@ export default {
       this.getArtifact();
     },
     formatVoteSubtitle(vote) {
-      return `Created by ${vote.author.full_name} at ${vote.created_at}`;
+      return `Created by ${vote.author.full_name} on ${format(new Date(vote.created_at), "dddd HH:mm:ss")}`;
     },
-    formatPostSubtitle(vote) {
-      return `Created by ${vote.author.full_name} at ${vote.created_at} (${
-        vote.type
-      })`;
+    formatPostSubtitle(post) {
+      return `Created by ${post.author.full_name} on ${format(new Date(post.created_at), "dddd HH:mm:ss")} (${post.type
+        })`;
     },
     fetchData() {
       this.fetchPendingVotes();
@@ -705,10 +696,9 @@ export default {
         baseURL: this.$store.state.backend.uri,
         method: "put",
         data: { status, is_active }
-      })
-        .then(() => {
-          this.fetchData();
-        }).catch(this.handleError);
+      }).then(() => {
+        this.fetchData();
+      }).catch(this.handleError);
     },
     updatePostStatus(id, status) {
       axios({
@@ -720,7 +710,7 @@ export default {
         .then(() => {
           this.fetchData();
         }).catch(this.handleError);
-    }
+    },
   }
 };
 </script>
@@ -729,12 +719,15 @@ export default {
 button {
   margin-right: 15px;
 }
+
 .wrapper {
   padding: 15px;
 }
+
 .card {
   margin: 15px;
 }
+
 .selected-person {
   margin-top: 15px
 }
@@ -744,6 +737,7 @@ h3 {
 .action-button {
   margin: 12px auto;
 }
+
 .person-groups-checkboxes {
   margin-top: 15px;
 
@@ -756,11 +750,11 @@ h3 {
   padding: 16px;
 }
 
-li > * {
+li>* {
   margin: auto 4px;
 }
 
-li > strong {
+li>strong {
   cursor: pointer;
 }
 </style>
