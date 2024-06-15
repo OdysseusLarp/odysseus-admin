@@ -207,6 +207,7 @@ import { distanceInWordsStrict } from 'date-fns';
 import { difference } from 'lodash';
 import { pushError } from '../helpers';
 import { startCase, snakeCase } from 'lodash';
+import { format } from "date-fns";
 
 export default {
   components: {
@@ -385,10 +386,10 @@ export default {
       this.getArtifact();
     },
     formatVoteSubtitle(vote) {
-      return `Created by ${vote.author.full_name} at ${vote.created_at}`;
+      return `Created by ${vote.author.full_name} on ${format(new Date(vote.created_at), "dddd HH:mm:ss")}`;
     },
-    formatPostSubtitle(vote) {
-      return `Created by ${vote.author.full_name} at ${vote.created_at} (${vote.type
+    formatPostSubtitle(post) {
+      return `Created by ${post.author.full_name} on ${format(new Date(post.created_at), "dddd HH:mm:ss")} (${post.type
         })`;
     },
     fetchData() {
