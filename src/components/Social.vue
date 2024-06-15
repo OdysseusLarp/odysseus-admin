@@ -206,7 +206,6 @@ import VueMarkdown from "vue-markdown";
 import { distanceInWordsStrict } from 'date-fns';
 import { difference } from 'lodash';
 import { pushError } from '../helpers';
-import { startCase, snakeCase } from 'lodash';
 import { format } from "date-fns";
 
 export default {
@@ -699,66 +698,8 @@ export default {
         data: { status, is_active }
       }).then(() => {
         this.fetchData();
-      }).then(() => {
-        this.fetchVote(id);
       }).catch(this.handleError);
     },
-    async fetchVote(id) {
-      await axios
-        .get(`/vote/${id}`, { baseURL: this.$store.state.backend.uri })
-        .then(response => {
-          this.putVotePost(response.data);
-        })
-        .catch(this.handleError);
-    },
-    async putVotePost(vote) {
-      const d = new Date(vote.active_until);
-      let voters = "";
-      if (vote.allowed_voters == 'everyone'){
-        voters = "Voting is not limited.";
-      } else {
-        voters = 'Voting open for ' + this.getVotingMessage(vote.allowed_voters);
-
-      }
-      
-      const end_time = (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
-      const postBody = voters + '</br>Voting ends at: ' + end_time;
-      const postData = {"priority":1,"enabled":true,"title": "Vote: " + vote.title,"body": postBody, "active_until":vote.active_until};
-      var url = "/infoboard";
-      await axios
-        .put(url, postData, { baseURL: this.$store.state.backend.uri })
-        .catch(this.handleError)
-    },
-    getVotingMessage(allowedVoters) {
-      if (!allowedVoters) return;
-      const votingAllowedFor = new Map([
-        ['EVERYONE', 'everyone'],
-        ['HIGH_RANKING_OFFICER', 'high ranking military officers'],
-      ]);
-      if (votingAllowedFor.has(allowedVoters))
-        return votingAllowedFor.get(allowedVoters);
-      if (allowedVoters.match(/^RELIGION:/))
-        return (
-          'followers of the ' +
-          startCase(snakeCase(allowedVoters.replace(/^RELIGION:/, ''))).replace('Faith Of The High Science', 'FotHS')
-        );
-      if (allowedVoters.match(/^DYNASTY:/))
-        return (
-          'members of the ' +
-          startCase(snakeCase(allowedVoters.replace(/^DYNASTY:/, ''))) +
-          ' dynasty'
-        );
-      if (allowedVoters.match(/^PARTY:/))
-        return (
-          'members of the ' +
-          startCase(snakeCase(allowedVoters.replace(/^PARTY:/, '')))
-        );
-      if (allowedVoters.match(/^SHIP:/))
-        return `those aboard the ship ${startCase(
-          snakeCase(allowedVoters.replace(/^SHIP:/, ''))
-        )}`;
-    },
-
     updatePostStatus(id, status) {
       axios({
         url: "/post?sendMessage=true",
