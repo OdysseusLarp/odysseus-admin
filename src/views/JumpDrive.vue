@@ -55,7 +55,9 @@
           <th>Temperature:</th>
           <td class="value">{{ temperature }}</td>
           <td class="info">
-            {{ Math.round(jumpstate.jump_drive_temp_exact) }}°C + randomness
+            {{ Math.round(jumpstate.jump_drive_temp_exact) }} K + randomness<br>
+            Target: {{ jump.jump_drive_target_temp }} K
+            <a href="#" @click.prevent="changeTargetTemperature">Change</a>
           </td>
         </tr>
         <tr>
@@ -88,6 +90,12 @@
 
       <h2>Actions</h2>
       <div v-if="jump.status === 'broken'">
+        <b-button
+          variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
         <b-button variant="danger" @click="write({ status: 'cooldown' })"
           >Bypass engineer fixes</b-button
         >
@@ -97,13 +105,26 @@
       <div v-if="jump.status === 'cooldown'">
         <b-button
           variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
+        <b-button
+          variant="secondary"
           @click="write({ status: 'ready_to_prep' })"
           >Mark cooldown done</b-button
-        >
+        ><br>
         (Marking cooldown as done will allow entering jump coordinates and
-        jumping immediately after prep is done)
+        jumping immediately after prep is done, but does NOT cool down the jump drive
+        nor allow making a regulation jump like the Immediate cooldown does.)
       </div>
       <div v-if="jump.status === 'ready_to_prep'">
+        <b-button
+          variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
         <b-button variant="danger" @click="write({ status: 'calculating' })"
           >Move to calculating</b-button
         >
@@ -119,6 +140,12 @@
           @click="write({ status: 'ready_to_prep' })"
           >Reject jump</b-button
         >
+        <b-button
+          variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
         <b-button variant="secondary" @click="changeMood()"
           >Change mood ({{ jump.next_jump_mood }}
           {{ moodDescriptions[jump.next_jump_mood] }})</b-button
@@ -126,6 +153,12 @@
         (Approve or reject proposed jump coordinates)
       </div>
       <div v-if="jump.status === 'preparation'">
+        <b-button
+          variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
         <b-button
           v-if="jumpCrystalStatus === 'broken'"
           variant="danger"
@@ -176,6 +209,12 @@
         (Will move forward once all tasks are done and calibrated)
       </div>
       <div v-if="jump.status === 'prep_complete'">
+        <b-button
+          variant="secondary"
+          @click="immediateCooldown"
+          v-if="!ready_for_safe_jump"
+          >Immediate cooldown (artifact)</b-button
+        >
         <b-button variant="secondary" @click="write({ status: 'ready' })"
           >Mark ready for regulation jump</b-button
         >
@@ -239,21 +278,21 @@
         <p></p>
         <b-button
           :variant="jumpSecs < 5 * 60 ? 'secondary' : 'danger'"
-          @click="write({ breaking_jump: true })"
+          @click="write({ breaking_jump: true, jump_drive_target_temp: jump.breaking_jump_target_temp })"
           >Change to breaking jump</b-button
         >
         <b-button
           :variant="
             jumpSecs < 5 * 60 || !jump.breaking_jump ? 'secondary' : 'danger'
           "
-          @click="write({ breaking_jump: false, minor_breaking_jump: true })"
+          @click="write({ breaking_jump: false, minor_breaking_jump: true, jump_drive_target_temp: jump.regular_jump_target_temp })"
           >Change to minor breaking jump</b-button
         >
         <b-button
           :variant="
             jumpSecs < 5 * 60 || !jump.breaking_jump ? 'secondary' : 'danger'
           "
-          @click="write({ breaking_jump: false, minor_breaking_jump: false })"
+          @click="write({ breaking_jump: false, minor_breaking_jump: false, jump_drive_target_temp: jump.regular_jump_target_temp })"
           >Change to non-breaking jump</b-button
         >
         <br />(Switching between major breaking / (minor/non)-breaking jump
@@ -402,7 +441,7 @@ export default {
       } else {
         desc = "high";
       }
-      return `${Math.round(this.jumpstate.jump_drive_temp)}°C (${desc})`;
+      return `${Math.round(this.jumpstate.jump_drive_temp)} K (${desc})`;
     },
     jumpSecs() {
       return (Date.now() - this.jump.last_jump) / 1000;
@@ -425,6 +464,9 @@ export default {
         return undefined;
       }
     },
+    ready_for_safe_jump() {
+      return this.jump.last_jump < Date.now() - SAFE_JUMP_LIMIT;
+    }
   },
   created() {
     // fetch the data when the view is created and the data is already being observed
@@ -501,6 +543,12 @@ export default {
               type: "error",
             });
           });
+      }
+    },
+    immediateCooldown() {
+      if (confirm("Do you want to immediately cooldown the jump drive? A safe jump will be immediately possible. Engineer tasks will still need to be performed.")) {
+        this.write({ last_jump: Date.now() - SAFE_JUMP_LIMIT }, true);
+        this.writeBlob({ type: 'ship',  id: 'jumpstate', coherence: 100, jump_drive_temp_exact: this.jump.jump_drive_target_temp }, true)
       }
     },
     fireJumpEndingSoonSignal(no_confirm = false) {
@@ -596,6 +644,12 @@ export default {
         this.write({ last_jump: this.jump.last_jump + minutes * 60 * 1000 });
       }
     },
+    changeTargetTemperature() {
+      const target = prompt(`Enter target temperature in Kelvin (current ${this.jump.jump_drive_target_temp}):`);
+      if (target && target.match(/^[0-9]+$/)) {
+        this.write({ jump_drive_target_temp: parseInt(target, 10) }, true);
+      }
+    },
     async fetchJumpCrystalCount() {
       this.isLoading = true;
       await axios
@@ -634,6 +688,7 @@ export default {
     white-space: nowrap;
   }
   .value {
+    min-width: 10em;
     white-space: nowrap;
     .initial,
     .fixed {
