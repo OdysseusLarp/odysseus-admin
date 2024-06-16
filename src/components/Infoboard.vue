@@ -45,7 +45,7 @@
       </b-form-checkbox>
     </div>
     <div>
-      <h2>
+      <h2 class="infoboard-entry-title">
         Infoboard entries<b-button
           v-b-modal.infoboard-entry-modal
           class="my-2 my-md-0 add-infoboard-entry"
@@ -55,19 +55,27 @@
           >Add new infoboard entry</b-button
         >
       </h2>
+      <b-form-checkbox
+        v-model="showEnabledOnly"
+        name="show-enabled-only"
+        switch
+      >
+        Show enabled only
+      </b-form-checkbox>
       <b-card
-        v-for="(infoboard, i) in infoboards"
+        v-for="(infoboard, i) in filteredInfoboards"
         :key="i"
         :class="'card'"
         :title="infoboard.title"
         :sub-title="'Created on ' + formatDate(infoboard.created_at)"
+        :v-if="!showEnabledOnly || infoboard.enabled"
       >
         <div class="badges">
+          <b-badge variant="info">Set {{ infoboard.priority }}</b-badge>
           <b-badge v-if="infoboard.enabled" variant="success">Enabled</b-badge>
           <b-badge v-else variant="secondary">Disabled</b-badge>
-          <b-badge variant="info">Set {{ infoboard.priority }}</b-badge>
-          <b-badge v-if="infoboard.active_until" variant="primary"
-            >Active until {{ formatDate(infoboard.active_until) }} ({{ formatDuration(infoboard.active_until) }})</b-badge>
+          <b-badge v-if="infoboard.active_until" :variant="alreadyHappend(infoboard.active_until) ? 'secondary' : 'primary'"
+            >{{ alreadyHappend(infoboard.active_until) ? "Closed on" : "Active until" }} {{ formatDate(infoboard.active_until) }} ({{ formatDuration(infoboard.active_until) }})</b-badge>
         </div>
         <div class="card-text">
           <pre>{{ infoboard.body }}</pre>
@@ -160,7 +168,16 @@ export default {
       newInfoboard: { ...emptyEntry },
       selectedEntry: { ...emptyEntry },
       news: [],
+      showEnabledOnly: true,
     };
+  },
+  computed: {
+    filteredInfoboards() {
+      if (this.showEnabledOnly) {
+        return this.infoboards.filter((infoboard) => infoboard.enabled);
+      }
+      return this.infoboards;
+    }
   },
 
   created() {
@@ -186,11 +203,15 @@ export default {
     handleError(error) {
       pushError(this.errors, error, this.$notify);
     },
+    alreadyHappend(date) {
+      return new Date(date) < new Date();
+    },
     formatDate(date) {
       return date ? format(new Date(date), "dddd HH:mm:ss") : "";
     },
     formatDuration(date) {
-      return date ? distanceInWordsToNow(date) : "";
+      const suffix = this.alreadyHappend(date) ? " ago" : " from now";
+      return date ? distanceInWordsToNow(date) + suffix : "";
     },
     async addInfoboardEntry(entry) {
       if (!entry.priority || !entry.title || !entry.body) {
@@ -315,5 +336,8 @@ button {
 }
 .add-infoboard-entry {
   float: right;
+}
+.infoboard-entry-title {
+  margin-bottom: 0.5rem;
 }
 </style>
