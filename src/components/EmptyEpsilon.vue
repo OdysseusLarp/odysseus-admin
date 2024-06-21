@@ -142,6 +142,17 @@
             <hr />
           </div>
           <div class="ee-status-container">
+            <h3>Landing pad statuses</h3>
+            <!-- For each key/value in gameState.landingPads print out stuff-->
+             <div class="landing-pad-container">
+              <div v-for="([key, value]) in landingPadStatus" :key="key" class="landing-pad-status" :class="getLandingPadClass(value)">
+              <strong>{{ getLandingPadName(key) }}</strong>
+              <span>{{ getLandingPadState(value) }}</span>
+            </div>
+             </div>
+            <hr />
+          </div>
+          <div class="ee-status-container">
             <h3>Update values</h3>
             <b-form>
               <div class="ee-patch-values-form">
@@ -285,6 +296,13 @@ export default {
         (e) => e.type === "ship" && e.id === "ee_metadata",
       );
     },
+    landingPadStatus() {
+    const landingPads = Object.entries(
+      _.get(this.gameState, "landingPads", {})
+    );
+    // Sort by key
+    return landingPads.sort(([a], [b]) => a.localeCompare(b));
+  },
     shipMetadata() {
       return this.$store.state.dataBlobs.find(
         (e) => e.type === "ship" && e.id === "metadata",
@@ -354,7 +372,57 @@ export default {
           this.errors.push("" + error);
           this.isLoading = false;
         });
-
+    },
+    getLandingPadName(key) {
+      switch (key) {
+        case "landingPadStatus1": {
+          return "Fighter 1";
+        }
+        case "landingPadStatus2": {
+          return "Fighter 2";
+        }
+        case "landingPadStatus3": {
+          return "Fighter 3";
+        }
+        case "landingPadStatus4": {
+          return "Starcaller";
+        }
+        default: {
+          return key;
+        }
+      }
+    },
+    getLandingPadState(value) {
+      switch (value) {
+        case 0: {
+          return "Destroyed";
+        }
+        case 1: {
+          return "Docked";
+        }
+        case 2: {
+          return "Launched";
+        }
+        default: {
+          return String(value) + " (unknown)";
+        }
+      }
+    },
+    getLandingPadClass(value) {
+      switch (value) {
+        case 0: {
+          return "landing-pad-status-destroyed";
+        }
+        case 1: {
+          return "landing-pad-status-docked";
+        }
+        case 2: {
+          return "landing-pad-status-launched";
+        }
+        default: {
+          return "";
+        }
+      }
     },
     async makeSetValueRequest(data) {
       this.isLoading = true;
@@ -557,6 +625,35 @@ button {
   font-family: monospace;
   background: #ffeeef;
   padding: 10px;
+}
+.landing-pad-container {
+  display: flex;
+  flex-direction: row;
+}
+.landing-pad-status {
+  border: 1px solid #f00;
+  padding: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.2rem;
+}
+.landing-pad-status:not(:last-child) {
+  margin-right: 0.5rem;
+}
+
+.landing-pad-status-destroyed {
+  border: 1px solid #dc3545;
+}
+
+.landing-pad-status-docked {
+  border: 1px solid #28a745;
+}
+
+.landing-pad-status-launched {
+  border: 1px solid #ffc107;
 }
 h2 {
   margin: auto;
