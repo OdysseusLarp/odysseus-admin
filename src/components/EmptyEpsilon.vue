@@ -23,12 +23,12 @@
     <b-container fluid>
       <b-row>
         <b-col>
-          <h2>Full game state</h2>
+          <h2>Empty Epsilon state</h2>
           <vue-json-pretty :data="gameState" class="ee-state"></vue-json-pretty>
         </b-col>
         <b-col cols="8">
-          <div>
-            <h2>
+            <div class="ee-status-container">
+              <h3>
               Connection status:
               <span v-if="!shipMetadata.ee_connection_enabled" class="yellow"
                 >DISABLED</span
@@ -39,59 +39,67 @@
                 >HEALTHY</span
               >
               <span v-else class="red">UNHEALTHY</span>
-            </h2>
-            <p v-if="!connectionStatus.isConnectionHealthy" class="red">
+            </h3>
+            <p v-if="!connectionStatus.isConnectionHealthy" class="red error-container">
               Error: {{ connectionStatus.lastErrorMessage }}
             </p>
-            <b-button
+            <div class="ee-action-buttons-container">
+              <b-button
               v-if="!shipMetadata.ee_connection_enabled"
               variant="success"
+              size="sm"
               @click="toggleConnectionEnabled(true)"
               >Enable connection</b-button
             >
             <b-button
               v-else
               variant="danger"
+              size="sm"
               @click="toggleConnectionEnabled(false)"
               >Disable connection</b-button
             >
+            </div>
             <hr />
-          </div>
-          <div>
-            <h2>
+            </div>
+          <div class="ee-status-container">
+            <h3>
               State synchronization:
               <span v-if="shipMetadata.ee_sync_enabled" class="green"
                 >ENABLED</span
               >
               <span v-else class="red">DISABLED</span>
-            </h2>
+            </h3>
+            <div class="ee-action-buttons-container">
             <b-button
               v-if="!shipMetadata.ee_sync_enabled"
               variant="success"
+              size="sm"
               @click="toggleSynchronization(true)"
               >Enable state synchronization</b-button
             >
             <b-button
               v-else
               variant="danger"
+              size="sm"
               @click="toggleSynchronization(false)"
               >Disable state synchronization</b-button
             >
             <b-button
               v-if="!shipMetadata.ee_sync_enabled"
               variant="primary"
+              size="sm"
               :disabled="isPushGameStatePending"
               @click="pushFullGameState()"
               >{{
                 isPushGameStatePending
-                  ? `${pushGameStateProgress} / 24`
+                  ? `${pushGameStateProgress} / 28`
                   : "Push current state to EE"
-              }}</b-button
-            >
+              }}</b-button>
+            </div>
             <hr />
           </div>
-          <div>
-            <h2>
+          <div class="ee-status-container">
+            <h3>
               Ship alert state:
               <span
                 v-if="gameState.general.alertLevel === 'Normal'"
@@ -109,32 +117,35 @@
                 >RED ALERT</span
               >
               <span v-else class="red">UNKNOWN ALERT STATE</span>
-            </h2>
-            <b-button variant="success" @click="setAlertState('normal')"
+            </h3>
+            <div class="ee-action-buttons-container">
+            <b-button variant="success" @click="setAlertState('normal')" size="sm"
               >Normal<span v-if="gameState.general.alertLevel === 'Normal'">
                 (active)</span
               ></b-button
             >
-            <b-button variant="warning" @click="setAlertState('yellow')"
+            <b-button variant="warning" @click="setAlertState('yellow')" size="sm"
               >Yellow alert<span
                 v-if="gameState.general.alertLevel === 'YELLOW ALERT'"
               >
                 (active)</span
               ></b-button
             >
-            <b-button variant="danger" @click="setAlertState('red')"
+            <b-button variant="danger" @click="setAlertState('red')" size="sm"
               >Red alert<span
                 v-if="gameState.general.alertLevel === 'RED ALERT'"
               >
                 (active)</span
               ></b-button
             >
+            </div>
             <hr />
           </div>
-          <div>
-            <h2>Update values</h2>
+          <div class="ee-status-container">
+            <h3>Update values</h3>
             <b-form>
-              <b-form-group label="Target type" label-for="selected-type">
+              <div class="ee-patch-values-form">
+                <b-form-group label="Target type" label-for="selected-type">
                 <b-form-select
                   id="selected-type"
                   v-model="selectedType"
@@ -177,13 +188,15 @@
                 >
                 </b-input>
               </b-form-group>
-              <b-button variant="primary" @click="setValue()"
+              </div>
+              <b-button variant="primary" @click="setValue()" size="sm"
                 >Set value</b-button
               >
             </b-form>
+            <hr />
           </div>
-          <div>
-            <h2>Break a task</h2>
+          <div class="ee-status-container">
+            <h3>Break a task</h3>
             <b-form>
               <b-form-group label="Task to break" label-for="selected-type">
                 <b-form-select
@@ -193,7 +206,7 @@
                 ></b-form-select>
               </b-form-group>
               <p>{{ taskDealtDamage }}</p>
-              <b-button variant="primary" @click="breakTask()"
+              <b-button variant="primary" @click="breakTask()" size="sm"
                 >Break task</b-button
               >
             </b-form>
@@ -455,6 +468,23 @@ export default {
       this.selectedType = "hull";
       this.selectedValue = get(this.gameState, "general.shipHullPercent");
       await this.setValue();
+
+      // And landing pad statuses
+      const landingPads = Object.getEntries(
+        get(this.gameState, "landingPads", {}),
+      );
+      for (const [pad, value] of landingPads) {
+        const target = pad.replace("landingPadStatus", "");
+        await this.makeSetValueRequest({
+          command: "setLandingPadState",
+          value,
+          target,
+        });
+        await new Promise((resolve) =>
+          setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS),
+        );
+        this.pushGameStateProgress = this.pushGameStateProgress + 1;
+      }
       this.pushGameStateProgress = this.pushGameStateProgress + 1;
       this.isPushGameStatePending = false;
       this.$notify({
@@ -502,5 +532,37 @@ button {
 }
 .vjs-tree .vjs-value__number {
   color: #1a3199;
+}
+.ee-patch-values-form {
+  display: flex;
+  flex-direction: row;
+  // They should all grow!
+  > * {
+    flex-grow: 1;
+  }
+  > *:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+}
+.ee-action-buttons-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding-top: 0.5rem;
+}
+.ee-status-container {
+  position: relative;
+}
+.error-container {
+  font-family: monospace;
+  background: #ffeeef;
+  padding: 10px;
+}
+h2 {
+  margin: auto;
+  margin-bottom: 1rem;
+}
+h3 {
+  padding-top: 0.5rem;
 }
 </style>

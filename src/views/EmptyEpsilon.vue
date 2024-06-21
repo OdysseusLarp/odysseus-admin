@@ -1,8 +1,5 @@
 <template>
   <div class="about">
-    <b-container fluid class="my-4">
-      <h1>Empty Epsilon</h1>
-    </b-container>
     <EmptyEpsilon />
   </div>
 </template>
