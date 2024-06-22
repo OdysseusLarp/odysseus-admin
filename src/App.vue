@@ -27,6 +27,7 @@
           <b-nav-item to="/emptyepsilon" :class="{ alerting: eeNeedsAttention }"
             >Empty Epsilon</b-nav-item
           >
+          <b-nav-item to="/landmissions">Land missions</b-nav-item>
           <b-nav-item to="/airlocks">Airlocks</b-nav-item>
           <b-nav-item to="/dmx">DMX</b-nav-item>
         </b-navbar-nav>
@@ -74,6 +75,7 @@ export default {
   },
   computed: mapState({
     backendUri: (state) => state.backend.uri,
+    firebaseConfig: (state) => state.firebase.config,
   }),
   created() {
     // fetch the data when the view is created and the data is already being observed

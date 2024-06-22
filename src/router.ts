@@ -11,6 +11,7 @@ import Operations from "./views/Operations.vue";
 import EmptyEpsilon from "./views/EmptyEpsilon.vue";
 import Airlocks from "./views/Airlocks.vue";
 import Dmx from "./views/Dmx.vue";
+import LandMissions from "./views/LandMissions.vue";
 
 Vue.use(VueRouter);
 
@@ -70,6 +71,11 @@ export default new VueRouter({
       path: "/dmx",
       name: "dmx",
       component: Dmx,
+    },
+    {
+      path: "/landmissions",
+      name: "landmisions",
+      component: LandMissions,
     },
   ],
 });
