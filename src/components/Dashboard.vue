@@ -27,11 +27,19 @@
         </tr>
         
     </table>
+
+    <h2>Artifacts</h2>
+    <Artifact artifactId="power_source"/>
+    <Artifact artifactId="jump_drive_cooldown"/>
+    <Artifact artifactId="calibration_slot"/>
+    <Artifact artifactId="scan_range_extender"/>
+    <Artifact artifactId="calibration_speedup"/>
   </b-container>
 </template>
 
 <script>
 import TimeAgo from "../components/TimeAgo";
+import Artifact from "../views/Artifact";
 import { BIG_BATTERY_LOCATIONS } from '@/bigbattery';
 
 const JUMP_DRIVE_DESCRIPTION = {
@@ -54,7 +62,7 @@ const JUMP_DRIVE_DESCRIPTION = {
 
 
 export default {
-  components: { TimeAgo },
+  components: { TimeAgo, Artifact },
   computed: {
     bigBatteryLocation() {
       const box = this.$store.state.dataBlobs.find(
