@@ -26,7 +26,7 @@
           <h2>Empty Epsilon state</h2>
           <vue-json-pretty :data="gameState" class="ee-state"></vue-json-pretty>
         </b-col>
-        <b-col cols="8">
+        <b-col cols="9">
             <div class="ee-status-container">
               <h3>
               Connection status:
@@ -538,8 +538,8 @@ export default {
       await this.setValue();
 
       // And landing pad statuses
-      const landingPads = Object.getEntries(
-        get(this.gameState, "landingPads", {}),
+      const landingPads = Object.entries(
+        _.get(this.gameState, "landingPads", {}),
       );
       for (const [pad, value] of landingPads) {
         const target = pad.replace("landingPadStatus", "");
@@ -586,7 +586,9 @@ button {
 }
 .ee-state {
   background: #eee;
-  padding: 8px;
+  padding: 12px;
+  border-radius: 0.25rem;
+  border: 1px solid #ccc;
 }
 .vjs-tree {
   line-height: 1em;
