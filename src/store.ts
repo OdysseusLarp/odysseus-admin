@@ -25,6 +25,16 @@ const store = new Vuex.Store<State>({
       password: "",
       autoRefresh: 15,
     },
+    firebase: {
+      config: {
+        apikey: "AIzaSyDmj_-UzJbD8V1eANytCoZXalNKivZ0_RA",
+        authDomain: "odysseusmissiontracker2024.firebaseapp.com",
+        projectId: "odysseusmissiontracker2024",
+        storageBucket: "odysseusmissiontracker2024.appspot.com",
+        messagingSenderId: "520302020070",
+        appId: "1:520302020070:web: 5070039f1b7bdd0da74227",
+      },
+    },
     dataBlobTypeChooser: {
       selectedType: null,
     },
@@ -32,6 +42,9 @@ const store = new Vuex.Store<State>({
   mutations: {
     setBackend(state, backend) {
       state.backend = backend;
+    },
+    setFirebase(state, firebase) {
+      state.firebase = firebase;
     },
     setDataBlob(state, data) {
       let found = false;

@@ -18,6 +18,9 @@ export interface State {
     password?: string;
     autoRefresh?: number;
   };
+  firebase: {
+    config: object | string | null;
+  };
   dataBlobTypeChooser: {
     selectedType: string | null;
   };
