@@ -6,7 +6,8 @@
     </b-container>
     <div v-if="!!pendingVotes.length">
       <h2>Pending new votes</h2>
-      <b-card v-for="vote in pendingVotes" :key="vote.id" class="card" :title="vote.title"
+      <b-card
+v-for="vote in pendingVotes" :key="vote.id" class="card" :title="vote.title"
         :sub-title="formatVoteSubtitle(vote)">
         <p class="card-text">{{ vote.description }}</p>
         <p class="card-text">
@@ -25,7 +26,8 @@
     </div>
     <div v-if="!!pendingPosts.length">
       <h2>Pending new posts</h2>
-      <b-card v-for="post in pendingPosts" :key="post.id" class="card" :title="post.title"
+      <b-card
+v-for="post in pendingPosts" :key="post.id" class="card" :title="post.title"
         :sub-title="formatPostSubtitle(post)">
         <p class="card-text">
           <vue-markdown :source="post.body"></vue-markdown>
