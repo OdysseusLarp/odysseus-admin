@@ -74,8 +74,20 @@
           <b-badge variant="info">Set {{ infoboard.priority }}</b-badge>
           <b-badge v-if="infoboard.enabled" variant="success">Enabled</b-badge>
           <b-badge v-else variant="secondary">Disabled</b-badge>
-          <b-badge v-if="infoboard.active_until" :variant="alreadyHappend(infoboard.active_until) ? 'secondary' : 'primary'"
-            >{{ alreadyHappend(infoboard.active_until) ? "Closed on" : "Active until" }} {{ formatDate(infoboard.active_until) }} ({{ formatDuration(infoboard.active_until) }})</b-badge>
+          <b-badge
+            v-if="infoboard.active_until"
+            :variant="
+              alreadyHappend(infoboard.active_until) ? 'secondary' : 'primary'
+            "
+            >{{
+              alreadyHappend(infoboard.active_until)
+                ? "Closed on"
+                : "Active until"
+            }}
+            {{ formatDate(infoboard.active_until) }} ({{
+              formatDuration(infoboard.active_until)
+            }})</b-badge
+          >
         </div>
         <div class="card-text">
           <pre>{{ infoboard.body }}</pre>
@@ -177,7 +189,7 @@ export default {
         return this.infoboards.filter((infoboard) => infoboard.enabled);
       }
       return this.infoboards;
-    }
+    },
   },
 
   created() {

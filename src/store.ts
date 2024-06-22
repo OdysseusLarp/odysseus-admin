@@ -10,7 +10,10 @@ const vuexPersist = new VuexPersist({
   storage: localStorage,
 });
 
-const uri = window.location.hostname === "localhost" ? "http://localhost:8888" : window.location.origin;
+const uri =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8888"
+    : window.location.origin;
 
 const store = new Vuex.Store<State>({
   state: {
@@ -32,7 +35,7 @@ const store = new Vuex.Store<State>({
         projectId: "odysseusmissiontracker2024",
         storageBucket: "odysseusmissiontracker2024.appspot.com",
         messagingSenderId: "520302020070",
-        appId: "1:520302020070:web: 5070039f1b7bdd0da74227",
+        appId: "1:520302020070:web:5070039f1b7bdd0da74227",
       },
     },
     dataBlobTypeChooser: {
@@ -61,7 +64,9 @@ const store = new Vuex.Store<State>({
       }
     },
     deleteDataBlob(state, data) {
-      state.dataBlobs = state.dataBlobs.filter((e) => e.type !== data.type || e.id !== data.id);
+      state.dataBlobs = state.dataBlobs.filter(
+        (e) => e.type !== data.type || e.id !== data.id,
+      );
     },
     setAllDataBlobs(state, datas) {
       state.dataBlobs = datas;

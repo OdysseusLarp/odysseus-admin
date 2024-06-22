@@ -27,8 +27,8 @@
           <vue-json-pretty :data="gameState" class="ee-state"></vue-json-pretty>
         </b-col>
         <b-col cols="9">
-            <div class="ee-status-container">
-              <h3>
+          <div class="ee-status-container">
+            <h3>
               Connection status:
               <span v-if="!shipMetadata.ee_connection_enabled" class="yellow"
                 >DISABLED</span
@@ -40,27 +40,30 @@
               >
               <span v-else class="red">UNHEALTHY</span>
             </h3>
-            <p v-if="!connectionStatus.isConnectionHealthy" class="red error-container">
+            <p
+              v-if="!connectionStatus.isConnectionHealthy"
+              class="red error-container"
+            >
               Error: {{ connectionStatus.lastErrorMessage }}
             </p>
             <div class="ee-action-buttons-container">
               <b-button
-              v-if="!shipMetadata.ee_connection_enabled"
-              variant="success"
-              size="sm"
-              @click="toggleConnectionEnabled(true)"
-              >Enable connection</b-button
-            >
-            <b-button
-              v-else
-              variant="danger"
-              size="sm"
-              @click="toggleConnectionEnabled(false)"
-              >Disable connection</b-button
-            >
+                v-if="!shipMetadata.ee_connection_enabled"
+                variant="success"
+                size="sm"
+                @click="toggleConnectionEnabled(true)"
+                >Enable connection</b-button
+              >
+              <b-button
+                v-else
+                variant="danger"
+                size="sm"
+                @click="toggleConnectionEnabled(false)"
+                >Disable connection</b-button
+              >
             </div>
             <hr />
-            </div>
+          </div>
           <div class="ee-status-container">
             <h3>
               State synchronization:
@@ -70,31 +73,32 @@
               <span v-else class="red">DISABLED</span>
             </h3>
             <div class="ee-action-buttons-container">
-            <b-button
-              v-if="!shipMetadata.ee_sync_enabled"
-              variant="success"
-              size="sm"
-              @click="toggleSynchronization(true)"
-              >Enable state synchronization</b-button
-            >
-            <b-button
-              v-else
-              variant="danger"
-              size="sm"
-              @click="toggleSynchronization(false)"
-              >Disable state synchronization</b-button
-            >
-            <b-button
-              v-if="!shipMetadata.ee_sync_enabled"
-              variant="primary"
-              size="sm"
-              :disabled="isPushGameStatePending"
-              @click="pushFullGameState()"
-              >{{
-                isPushGameStatePending
-                  ? `${pushGameStateProgress} / 28`
-                  : "Push current state to EE"
-              }}</b-button>
+              <b-button
+                v-if="!shipMetadata.ee_sync_enabled"
+                variant="success"
+                size="sm"
+                @click="toggleSynchronization(true)"
+                >Enable state synchronization</b-button
+              >
+              <b-button
+                v-else
+                variant="danger"
+                size="sm"
+                @click="toggleSynchronization(false)"
+                >Disable state synchronization</b-button
+              >
+              <b-button
+                v-if="!shipMetadata.ee_sync_enabled"
+                variant="primary"
+                size="sm"
+                :disabled="isPushGameStatePending"
+                @click="pushFullGameState()"
+                >{{
+                  isPushGameStatePending
+                    ? `${pushGameStateProgress} / 28`
+                    : "Push current state to EE"
+                }}</b-button
+              >
             </div>
             <hr />
           </div>
@@ -119,37 +123,48 @@
               <span v-else class="red">UNKNOWN ALERT STATE</span>
             </h3>
             <div class="ee-action-buttons-container">
-            <b-button variant="success" @click="setAlertState('normal')" size="sm"
-              >Normal<span v-if="gameState.general.alertLevel === 'Normal'">
-                (active)</span
-              ></b-button
-            >
-            <b-button variant="warning" @click="setAlertState('yellow')" size="sm"
-              >Yellow alert<span
-                v-if="gameState.general.alertLevel === 'YELLOW ALERT'"
+              <b-button
+                variant="success"
+                size="sm"
+                @click="setAlertState('normal')"
+                >Normal<span v-if="gameState.general.alertLevel === 'Normal'">
+                  (active)</span
+                ></b-button
               >
-                (active)</span
-              ></b-button
-            >
-            <b-button variant="danger" @click="setAlertState('red')" size="sm"
-              >Red alert<span
-                v-if="gameState.general.alertLevel === 'RED ALERT'"
+              <b-button
+                variant="warning"
+                size="sm"
+                @click="setAlertState('yellow')"
+                >Yellow alert<span
+                  v-if="gameState.general.alertLevel === 'YELLOW ALERT'"
+                >
+                  (active)</span
+                ></b-button
               >
-                (active)</span
-              ></b-button
-            >
+              <b-button variant="danger" size="sm" @click="setAlertState('red')"
+                >Red alert<span
+                  v-if="gameState.general.alertLevel === 'RED ALERT'"
+                >
+                  (active)</span
+                ></b-button
+              >
             </div>
             <hr />
           </div>
           <div class="ee-status-container">
             <h3>Landing pad statuses</h3>
             <!-- For each key/value in gameState.landingPads print out stuff-->
-             <div class="landing-pad-container">
-              <div v-for="([key, value]) in landingPadStatus" :key="key" class="landing-pad-status" :class="getLandingPadClass(value)">
-              <strong>{{ getLandingPadName(key) }}</strong>
-              <span>{{ getLandingPadState(value) }}</span>
+            <div class="landing-pad-container">
+              <div
+                v-for="[key, value] in landingPadStatus"
+                :key="key"
+                class="landing-pad-status"
+                :class="getLandingPadClass(value)"
+              >
+                <strong>{{ getLandingPadName(key) }}</strong>
+                <span>{{ getLandingPadState(value) }}</span>
+              </div>
             </div>
-             </div>
             <hr />
           </div>
           <div class="ee-status-container">
@@ -157,51 +172,53 @@
             <b-form>
               <div class="ee-patch-values-form">
                 <b-form-group label="Target type" label-for="selected-type">
-                <b-form-select
-                  id="selected-type"
-                  v-model="selectedType"
-                  :options="types"
-                ></b-form-select>
-              </b-form-group>
-              <b-form-group
-                v-if="selectedType !== 'hull'"
-                label="Target"
-                label-for="selected-target"
-              >
-                <b-form-select
-                  id="selected-target"
-                  v-model="selectedTarget"
-                  :options="selectedType === 'systems' ? systems : weapons"
-                ></b-form-select>
-              </b-form-group>
-              <b-form-group
-                v-if="selectedType === 'systems'"
-                label="Value type"
-                label-for="selected-value-type"
-              >
-                <b-form-select
-                  id="selected-value-type"
-                  v-model="selectedValueType"
-                  :options="
-                    selectedType === 'systems'
-                      ? systemValueTypes
-                      : weaponValueTypes
-                  "
-                ></b-form-select>
-              </b-form-group>
-              <b-form-group label="Value" label-for="selected-value">
-                <b-input
-                  id="value"
-                  v-model="selectedValue"
-                  class="mb-2 mr-sm-2 mb-sm-0"
-                  placeholder="1"
-                  type="text"
+                  <b-form-select
+                    id="selected-type"
+                    v-model="selectedType"
+                    :options="types"
+                  ></b-form-select>
+                </b-form-group>
+                <b-form-group
+                  v-if="selectedType !== 'hull'"
+                  label="Target"
+                  label-for="selected-target"
                 >
-                </b-input>
-              </b-form-group>
-              <div class="form-button-container">
-                <b-button variant="primary" @click="setValue()" size="md">Set value</b-button>
-              </div>
+                  <b-form-select
+                    id="selected-target"
+                    v-model="selectedTarget"
+                    :options="selectedType === 'systems' ? systems : weapons"
+                  ></b-form-select>
+                </b-form-group>
+                <b-form-group
+                  v-if="selectedType === 'systems'"
+                  label="Value type"
+                  label-for="selected-value-type"
+                >
+                  <b-form-select
+                    id="selected-value-type"
+                    v-model="selectedValueType"
+                    :options="
+                      selectedType === 'systems'
+                        ? systemValueTypes
+                        : weaponValueTypes
+                    "
+                  ></b-form-select>
+                </b-form-group>
+                <b-form-group label="Value" label-for="selected-value">
+                  <b-input
+                    id="value"
+                    v-model="selectedValue"
+                    class="mb-2 mr-sm-2 mb-sm-0"
+                    placeholder="1"
+                    type="text"
+                  >
+                  </b-input>
+                </b-form-group>
+                <div class="form-button-container">
+                  <b-button variant="primary" size="md" @click="setValue()"
+                    >Set value</b-button
+                  >
+                </div>
               </div>
             </b-form>
             <hr />
@@ -218,7 +235,9 @@
                   ></b-form-select>
                 </b-form-group>
                 <div class="form-button-container">
-                  <b-button variant="primary" @click="breakTask()" size="md">Break task</b-button>
+                  <b-button variant="primary" size="md" @click="breakTask()"
+                    >Break task</b-button
+                  >
                 </div>
               </div>
               <p>{{ taskDealtDamage }}</p>
@@ -299,21 +318,28 @@ export default {
       );
     },
     landingPadStatus() {
-    const landingPads = Object.entries(
-      _.get(this.gameState, "landingPads", {})
-    );
-    // Sort by key
-    return landingPads.sort(([a], [b]) => a.localeCompare(b));
-  },
+      const landingPads = Object.entries(
+        _.get(this.gameState, "landingPads", {}),
+      );
+      // Sort by key
+      return landingPads.sort(([a], [b]) => a.localeCompare(b));
+    },
     shipMetadata() {
       return this.$store.state.dataBlobs.find(
         (e) => e.type === "ship" && e.id === "metadata",
       );
     },
     tasksNotBroken() {
-      return this.$store.state.dataBlobs.filter(
-        (e) => e.type === "task" && e.status !== "broken" && e.eeType && e.eeHealth
-      ).map((e) => e.id).sort()
+      return this.$store.state.dataBlobs
+        .filter(
+          (e) =>
+            e.type === "task" &&
+            e.status !== "broken" &&
+            e.eeType &&
+            e.eeHealth,
+        )
+        .map((e) => e.id)
+        .sort();
     },
     taskDealtDamage() {
       if (!this.selectedTaskToBreak) {
@@ -325,8 +351,10 @@ export default {
       if (!task) {
         return "";
       }
-      return `Breaking task ${task.id} will cause ${Math.round(task.eeHealth*100)}% damage to ${task.eeType}.`;
-    }
+      return `Breaking task ${task.id} will cause ${Math.round(
+        task.eeHealth * 100,
+      )}% damage to ${task.eeType}.`;
+    },
   },
 
   created() {},
@@ -368,12 +396,11 @@ export default {
         method: "post",
         data: {
           taskId: this.selectedTaskToBreak,
-        }
-      })
-        .catch((error) => {
-          this.errors.push("" + error);
-          this.isLoading = false;
-        });
+        },
+      }).catch((error) => {
+        this.errors.push("" + error);
+        this.isLoading = false;
+      });
     },
     getLandingPadName(key) {
       switch (key) {

@@ -3,36 +3,37 @@
     <h1>Dashboard</h1>
     <table class="status">
       <tr>
-          <th class="label">Jump drive status:</th>
-          <td class="value">{{ jump.status }}</td>
-          <td class="info">{{ jumpStatusDescription }}</td>
-        </tr>
-        <tr>
-          <th class="label">Jump ready countdown:</th>
-          <td class="value">{{ jumpstate.readyT }}</td>
-          <td class="info">
-            Last jump started
-            <time-ago :time="jump.last_jump" :warn="10020"></time-ago>
-          </td>
-        </tr>
+        <th class="label">Jump drive status:</th>
+        <td class="value">{{ jump.status }}</td>
+        <td class="info">{{ jumpStatusDescription }}</td>
+      </tr>
       <tr>
-          <th class="label">Big battery location:</th>
-          <td class="value">{{ bigBatteryLocation }}</td>
-          <td class="info">Where big battery is currently connected to and whether it is "active"</td>
-        </tr>
-        <tr>
-          <th class="label">Big battery charge:</th>
-          <td class="value">{{ bigBatteryCharge }}</td>
-          <td class="info"></td>
-        </tr>
-        
+        <th class="label">Jump ready countdown:</th>
+        <td class="value">{{ jumpstate.readyT }}</td>
+        <td class="info">
+          Last jump started
+          <time-ago :time="jump.last_jump" :warn="10020"></time-ago>
+        </td>
+      </tr>
+      <tr>
+        <th class="label">Big battery location:</th>
+        <td class="value">{{ bigBatteryLocation }}</td>
+        <td class="info">
+          Where big battery is currently connected to and whether it is "active"
+        </td>
+      </tr>
+      <tr>
+        <th class="label">Big battery charge:</th>
+        <td class="value">{{ bigBatteryCharge }}</td>
+        <td class="info"></td>
+      </tr>
     </table>
   </b-container>
 </template>
 
 <script>
 import TimeAgo from "../components/TimeAgo";
-import { BIG_BATTERY_LOCATIONS } from '@/bigbattery';
+import { BIG_BATTERY_LOCATIONS } from "@/bigbattery";
 
 const JUMP_DRIVE_DESCRIPTION = {
   broken: "Jump drive broken, pending engineers to perform fixing tasks.",
@@ -52,7 +53,6 @@ const JUMP_DRIVE_DESCRIPTION = {
     "Ship is jumping. GMs can change whether this is a breaking or non-breaking jump (preferably during first 5 min of jump).",
 };
 
-
 export default {
   components: { TimeAgo },
   computed: {
@@ -67,7 +67,9 @@ export default {
       const locationName = Object.keys(BIG_BATTERY_LOCATIONS).find(
         (key) => BIG_BATTERY_LOCATIONS[key] === box.connected_position,
       );
-      return `${locationName || 'Unknown'} (${box.connected_position}) ${box.active ? 'ACTIVE' : ''}`
+      return `${locationName || "Unknown"} (${box.connected_position}) ${
+        box.active ? "ACTIVE" : ""
+      }`;
     },
     bigBatteryCharge() {
       const box = this.$store.state.dataBlobs.find(

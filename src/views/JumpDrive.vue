@@ -55,7 +55,7 @@
           <th>Temperature:</th>
           <td class="value">{{ temperature }}</td>
           <td class="info">
-            {{ Math.round(jumpstate.jump_drive_temp_exact) }} K + randomness<br>
+            {{ Math.round(jumpstate.jump_drive_temp_exact) }} K + randomness<br />
             Target: {{ jump.jump_drive_target_temp }} K
             <a href="#" @click.prevent="changeTargetTemperature">Change</a>
           </td>
@@ -91,9 +91,9 @@
       <h2>Actions</h2>
       <div v-if="jump.status === 'broken'">
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button variant="danger" @click="write({ status: 'cooldown' })"
@@ -104,25 +104,26 @@
       </div>
       <div v-if="jump.status === 'cooldown'">
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button
           variant="secondary"
           @click="write({ status: 'ready_to_prep' })"
           >Mark cooldown done</b-button
-        ><br>
+        ><br />
         (Marking cooldown as done will allow entering jump coordinates and
-        jumping immediately after prep is done, but does NOT cool down the jump drive
-        nor allow making a regulation jump like the Immediate cooldown does.)
+        jumping immediately after prep is done, but does NOT cool down the jump
+        drive nor allow making a regulation jump like the Immediate cooldown
+        does.)
       </div>
       <div v-if="jump.status === 'ready_to_prep'">
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button variant="danger" @click="write({ status: 'calculating' })"
@@ -141,9 +142,9 @@
           >Reject jump</b-button
         >
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button variant="secondary" @click="changeMood()"
@@ -154,9 +155,9 @@
       </div>
       <div v-if="jump.status === 'preparation'">
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button
@@ -210,9 +211,9 @@
       </div>
       <div v-if="jump.status === 'prep_complete'">
         <b-button
+          v-if="!ready_for_safe_jump"
           variant="secondary"
           @click="immediateCooldown"
-          v-if="!ready_for_safe_jump"
           >Immediate cooldown (artifact)</b-button
         >
         <b-button variant="secondary" @click="write({ status: 'ready' })"
@@ -278,21 +279,38 @@
         <p></p>
         <b-button
           :variant="jumpSecs < 5 * 60 ? 'secondary' : 'danger'"
-          @click="write({ breaking_jump: true, jump_drive_target_temp: jump.breaking_jump_target_temp })"
+          @click="
+            write({
+              breaking_jump: true,
+              jump_drive_target_temp: jump.breaking_jump_target_temp,
+            })
+          "
           >Change to breaking jump</b-button
         >
         <b-button
           :variant="
             jumpSecs < 5 * 60 || !jump.breaking_jump ? 'secondary' : 'danger'
           "
-          @click="write({ breaking_jump: false, minor_breaking_jump: true, jump_drive_target_temp: jump.regular_jump_target_temp })"
+          @click="
+            write({
+              breaking_jump: false,
+              minor_breaking_jump: true,
+              jump_drive_target_temp: jump.regular_jump_target_temp,
+            })
+          "
           >Change to minor breaking jump</b-button
         >
         <b-button
           :variant="
             jumpSecs < 5 * 60 || !jump.breaking_jump ? 'secondary' : 'danger'
           "
-          @click="write({ breaking_jump: false, minor_breaking_jump: false, jump_drive_target_temp: jump.regular_jump_target_temp })"
+          @click="
+            write({
+              breaking_jump: false,
+              minor_breaking_jump: false,
+              jump_drive_target_temp: jump.regular_jump_target_temp,
+            })
+          "
           >Change to non-breaking jump</b-button
         >
         <br />(Switching between major breaking / (minor/non)-breaking jump
@@ -408,12 +426,12 @@ export default {
   computed: {
     jump() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "ship" && blob.id === "jump"
+        (blob) => blob.type === "ship" && blob.id === "jump",
       );
     },
     jumpstate() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "ship" && blob.id === "jumpstate"
+        (blob) => blob.type === "ship" && blob.id === "jumpstate",
       );
     },
     jumpCoordinates() {
@@ -449,12 +467,12 @@ export default {
     jumpCrystalStatus() {
       return this.$store.state.dataBlobs.find(
         (blob) =>
-          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal"
+          blob.type === "task" && blob.id === "jump_drive_insert_jump_crystal",
       ).status;
     },
     jumpReactorStatus() {
       return this.$store.state.dataBlobs.find(
-        (blob) => blob.type === "task" && blob.id === "jump_reactor"
+        (blob) => blob.type === "task" && blob.id === "jump_reactor",
       ).status;
     },
     last_jump_override() {
@@ -466,7 +484,7 @@ export default {
     },
     ready_for_safe_jump() {
       return this.jump.last_jump < Date.now() - SAFE_JUMP_LIMIT;
-    }
+    },
   },
   created() {
     // fetch the data when the view is created and the data is already being observed
@@ -474,7 +492,7 @@ export default {
     if (this.$store.state.backend.autoRefresh > 0.5) {
       this.timer = setInterval(
         this.fetchJumpCrystalCount,
-        this.$store.state.backend.autoRefresh * 1000
+        this.$store.state.backend.autoRefresh * 1000,
       );
     }
     // Calculate data age every second
@@ -493,7 +511,7 @@ export default {
         no_confirm ||
         confirm(
           "Do you want to update the state?\n" +
-            JSON.stringify(data, undefined, 2)
+            JSON.stringify(data, undefined, 2),
         )
       ) {
         console.log("Writing jump drive state:", data);
@@ -522,7 +540,7 @@ export default {
         no_confirm ||
         confirm(
           "Do you want to update the data blob?\n" +
-            JSON.stringify(data, undefined, 2)
+            JSON.stringify(data, undefined, 2),
         )
       ) {
         console.log("Writing data blob:", data);
@@ -546,9 +564,21 @@ export default {
       }
     },
     immediateCooldown() {
-      if (confirm("Do you want to immediately cooldown the jump drive? A safe jump will be immediately possible. Engineer tasks will still need to be performed.")) {
+      if (
+        confirm(
+          "Do you want to immediately cooldown the jump drive? A safe jump will be immediately possible. Engineer tasks will still need to be performed.",
+        )
+      ) {
         this.write({ last_jump: Date.now() - SAFE_JUMP_LIMIT }, true);
-        this.writeBlob({ type: 'ship',  id: 'jumpstate', coherence: 100, jump_drive_temp_exact: this.jump.jump_drive_target_temp }, true)
+        this.writeBlob(
+          {
+            type: "ship",
+            id: "jumpstate",
+            coherence: 100,
+            jump_drive_temp_exact: this.jump.jump_drive_target_temp,
+          },
+          true,
+        );
       }
     },
     fireJumpEndingSoonSignal(no_confirm = false) {
@@ -577,14 +607,14 @@ export default {
     endJump(no_confirm = false) {
       this.write(
         { status: "broken", last_jump_override: this.last_jump_override },
-        no_confirm
+        no_confirm,
       );
     },
     endJumpWithWarning() {
       const durationSecs = this.jump.jump_end_warning_secs;
       if (
         confirm(
-          `Fire JumpEndingSoon signal and end jump in ${durationSecs} secs?`
+          `Fire JumpEndingSoon signal and end jump in ${durationSecs} secs?`,
         )
       ) {
         this.fireJumpEndingSoonSignal(true).then(() => {
@@ -619,7 +649,7 @@ export default {
       if (nextMood) {
         if (MOODS[nextMood]) {
           this.write({ next_jump_mood: nextMood }, true).alert(
-            `Jump mood changed to ${nextMood} (${MOODS[nextMood]})`
+            `Jump mood changed to ${nextMood} (${MOODS[nextMood]})`,
           );
         } else {
           alert(`Invalid mood: ${nextMood}`);
@@ -628,7 +658,7 @@ export default {
     },
     changeNextJumpDuration() {
       const minutes = prompt(
-        "How many MINUTES is the next jump cycle (2h 47min = 167 minutes), cancel to reset to default:"
+        "How many MINUTES is the next jump cycle (2h 47min = 167 minutes), cancel to reset to default:",
       );
       if (minutes) {
         this.jumpLength = minutes * 60 * 1000;
@@ -638,14 +668,16 @@ export default {
     },
     changeCurrentJumpDuration() {
       const minutes = prompt(
-        "How many MINUTES to postpone regulation jump (and cooldown, if not complete)?\nPOSITIVE will delay next jump, NEGATIVE will allow jumping earlier"
+        "How many MINUTES to postpone regulation jump (and cooldown, if not complete)?\nPOSITIVE will delay next jump, NEGATIVE will allow jumping earlier",
       );
       if (minutes) {
         this.write({ last_jump: this.jump.last_jump + minutes * 60 * 1000 });
       }
     },
     changeTargetTemperature() {
-      const target = prompt(`Enter target temperature in Kelvin (current ${this.jump.jump_drive_target_temp}):`);
+      const target = prompt(
+        `Enter target temperature in Kelvin (current ${this.jump.jump_drive_target_temp}):`,
+      );
       if (target && target.match(/^[0-9]+$/)) {
         this.write({ jump_drive_target_temp: parseInt(target, 10) }, true);
       }
@@ -663,7 +695,7 @@ export default {
           this.jumpCrystalCount = get(
             this.odysseus,
             "metadata.jump_crystal_count",
-            0
+            0,
           );
         })
         .catch(this.handleError);
