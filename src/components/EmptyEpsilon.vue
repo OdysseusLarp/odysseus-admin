@@ -199,27 +199,29 @@
                 >
                 </b-input>
               </b-form-group>
+              <div class="form-button-container">
+                <b-button variant="primary" @click="setValue()" size="md">Set value</b-button>
               </div>
-              <b-button variant="primary" @click="setValue()" size="sm"
-                >Set value</b-button
-              >
+              </div>
             </b-form>
             <hr />
           </div>
           <div class="ee-status-container">
             <h3>Break a task</h3>
             <b-form>
-              <b-form-group label="Task to break" label-for="selected-type">
-                <b-form-select
-                  id="selected-type"
-                  v-model="selectedTaskToBreak"
-                  :options="tasksNotBroken"
-                ></b-form-select>
-              </b-form-group>
+              <div class="ee-patch-values-form">
+                <b-form-group label="Task to break" label-for="selected-type">
+                  <b-form-select
+                    id="selected-type"
+                    v-model="selectedTaskToBreak"
+                    :options="tasksNotBroken"
+                  ></b-form-select>
+                </b-form-group>
+                <div class="form-button-container">
+                  <b-button variant="primary" @click="breakTask()" size="md">Break task</b-button>
+                </div>
+              </div>
               <p>{{ taskDealtDamage }}</p>
-              <b-button variant="primary" @click="breakTask()" size="sm"
-                >Break task</b-button
-              >
             </b-form>
           </div>
         </b-col>
@@ -602,6 +604,11 @@ button {
 }
 .vjs-tree .vjs-value__number {
   color: #1a3199;
+}
+.form-button-container {
+  flex: 0 !important;
+  align-content: flex-end;
+  padding-bottom: 1rem;
 }
 .ee-patch-values-form {
   display: flex;
