@@ -326,6 +326,9 @@
         <span class="color danger">Dangerous action</span>
       </div>
 
+      <h2>Cooldown alien artifact</h2>
+      <Artifact artifactId="jump_drive_cooldown"/>
+
       <h2>Initialization</h2>
       <p>
         Initialize the jump drive to a specific duration since the last jump
@@ -363,6 +366,7 @@
 
 <script>
 import TimeAgo from "../components/TimeAgo";
+import Artifact from "../views/Artifact";
 import axios from "axios";
 import { get } from "lodash";
 const DESCRIPTION = {
@@ -395,7 +399,7 @@ const MIN = 60 * 1000;
 const SAFE_JUMP_LIMIT = 2 * HOUR + 47 * MIN;
 
 export default {
-  components: { TimeAgo },
+  components: { TimeAgo, Artifact },
   data() {
     return {
       jumpLength: undefined,
