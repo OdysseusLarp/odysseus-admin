@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-navbar toggleable="sm" variant="light" type="light">
+    <b-navbar toggleable="sm" variant="light" type="light" sticky>
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
       <b-navbar-brand to="/">Odysseus admin</b-navbar-brand>
       <b-collapse id="nav_collapse" is-nav>
