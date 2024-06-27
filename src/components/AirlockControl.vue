@@ -1,6 +1,9 @@
 <template>
   <b-container fluid class="my-4">
-    <h2>{{ boxId }}</h2>
+    <h2>
+      {{ boxId }}
+      <span v-if="box.config?.title_bar_text">("{{box.config.title_bar_text}}")</span>
+    </h2>
     <ul>
       <li>
         Status: <b>{{ box.status }}</b>
@@ -19,45 +22,36 @@
       </li>
       <li>Countdown: <countdown :target="box.countdown_to" /></li>
       <li>
-        Linked task: {{ linkedBox.id }} (type: {{ linkedBox.type }}, status:
-        {{ linkedBox.status }})
+        <label for="accessDenied">Access denied: &nbsp;</label>
+        <input type="checkbox" id="accessDenied" :checked="box.access_denied" @change="toggleAccess()">
       </li>
     </ul>
 
-    Actions:
-    <div class="button-group">
-      <b-button variant="success" @click="sendCommand('open')">Open</b-button>
-      <b-button
-        :variant="confirmClose ? 'danger' : 'success'"
-        @click="sendCommand('close')"
-        >Close</b-button
-      >
-      <b-button variant="success" @click="sendCommand('pressurize')"
-        >Pressurize</b-button
-      >
-      <b-button
-        :variant="confirmClose ? 'danger' : 'success'"
-        @click="sendCommand('depressurize')"
-        >Depressurize</b-button
-      >
-      <!--
-			<b-button variant="warning" @click="sendCommand('malfunction')">Malfunction</b-button>
-			-->
-      <b-button variant="outline-warning" @click="sendCommand('stop')"
-        >Cancel</b-button
-      >
-      <div style="color: red">{{ confirmClose || "" }}</div>
-    </div>
-
     Force status (aborts action countdown, does not fire DMX events!):
     <div class="button-group">
-      <b-button variant="warning" @click="forceStatus('open')">Open</b-button>
-      <b-button variant="warning" @click="forceStatus('closed')"
-        >Closed</b-button
-      >
-      <b-button variant="warning" @click="forceStatus('vacuum')"
-        >Vacuum</b-button
-      >
+      <b-button variant="warning" @click="forceStatus('open')">Unlocked</b-button>
+      <b-button variant="warning" @click="forceStatus('closed')">Locked</b-button>
+      <b-button variant="warning" @click="forceStatus('vacuum')" v-if="box.config.allow_depressurize">Vacuum</b-button>
+    </div>
+
+    Actions:
+    <div class="button-group">
+      <b-button variant="success" @click="sendCommand('open')">Unlock</b-button>
+      <b-button variant="success" @click="sendCommand('close')">Lock</b-button>
+      <b-button variant="outline-warning" @click="sendCommand('stop')">Stop Transition</b-button>
+    </div>
+
+    <div class="button-group" v-if="box.config.allow_depressurize">
+      <b-button variant="success" @click="sendCommand('pressurize')">Pressurize</b-button>
+      <b-button variant="success" @click="sendCommand('depressurize')">Depressurize</b-button>
+      <b-button variant="success" @click="sendCommand('evacuate')">Emergency Depressurize</b-button>
+    </div>
+
+    <div v-if="box.config.allow_depressurize">
+      For Tristan Fukui (non-interruptible 10 min depressurization):
+      <div class="button-group">
+        <b-button variant="warning" @click="sendCommand('forceDepressurize')">Force Depressurize</b-button>
+      </div>
     </div>
   </b-container>
 </template>
@@ -75,20 +69,6 @@ export default {
   computed: {
     box() {
       return this.getBlob("box", this.boxId) || DEFAULT_BOX;
-    },
-    linkedBox() {
-      const config = this.box.config || {};
-      const type = config.linked_task_type || "box",
-        id = config.linked_task_id;
-      if (!id) return { type: type, id: "none", status: "n/a" };
-      return (
-        this.getBlob(type, id) || { type: type, id: id, status: "NOT FOUND" }
-      );
-    },
-    confirmClose() {
-      return (
-        this.box.status === "open" && this.box.config.confirm_close_message
-      );
     },
   },
   methods: {
@@ -118,6 +98,18 @@ export default {
           console.log(`Forcing ${this.boxId} to state ${status} failed:`, err),
         );
     },
+    toggleAccess() {
+      const accessDenied = !this.box.access_denied;
+      console.log(`Setting access_denied for ${this.boxId} to ${accessDenied}...`);
+      axios
+          .patch(`/data/box/${this.boxId}?force=true`, {
+            access_denied: accessDenied,
+          })
+          .then(() => console.log(`Set access_denied for ${this.boxId} to ${accessDenied}`))
+          .catch((err) =>
+              console.log(`Failed to set access_denied for ${this.boxId} to ${accessDenied}:`, err),
+          );
+    },
     timeString(timestamp) {
       if (!timestamp) return "never";
       return "at " + new Date(timestamp).toISOString();
@@ -129,5 +121,9 @@ export default {
 <style lang="scss">
 .button-group {
   margin-bottom: 1em;
+}
+
+li > * {
+  margin: auto
 }
 </style>
