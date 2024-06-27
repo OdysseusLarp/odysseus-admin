@@ -378,13 +378,13 @@ export default {
     getLandingPadName(key) {
       switch (key) {
         case "landingPadStatus1": {
-          return "Fighter 1";
+          return "ESSODY18";
         }
         case "landingPadStatus2": {
-          return "Fighter 2";
+          return "ESSODY23";
         }
         case "landingPadStatus3": {
-          return "Fighter 3";
+          return "ESSODY36";
         }
         case "landingPadStatus4": {
           return "Starcaller";
