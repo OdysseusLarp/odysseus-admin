@@ -649,7 +649,7 @@ export default {
       }
     },
     changeTargetTemperature() {
-      const target = prompt(`Enter target temperature in Kelvin (current ${this.jump.jump_drive_target_temp}):`);
+      const target = prompt(`Enter target temperature in Kelvin (current ${this.jump.jump_drive_target_temp}).  Nominal <3900, High 3900-5200, Critical >5200:`);
       if (target && target.match(/^[0-9]+$/)) {
         this.write({ jump_drive_target_temp: parseInt(target, 10) }, true);
       }
