@@ -99,6 +99,10 @@
         <b-button variant="danger" @click="write({ status: 'cooldown' })"
           >Bypass engineer fixes</b-button
         >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
         (Bypassing will skip engineer tasks, but they will still be marked as
         broken)
       </div>
@@ -113,7 +117,12 @@
           variant="secondary"
           @click="write({ status: 'ready_to_prep' })"
           >Mark cooldown done</b-button
-        ><br>
+        >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
+        >
+        <br>
         (Marking cooldown as done will allow entering jump coordinates and
         jumping immediately after prep is done, but does NOT cool down the jump drive
         nor allow making a regulation jump like the Immediate cooldown does.)
@@ -127,6 +136,10 @@
         >
         <b-button variant="danger" @click="write({ status: 'calculating' })"
           >Move to calculating</b-button
+        >
+        <b-button variant="secondary" @click="changeMood()"
+          >Change mood ({{ jump.next_jump_mood }}
+          {{ moodDescriptions[jump.next_jump_mood] }})</b-button
         >
         (Moving <strong>will not update</strong> jump coordinates, this needs to
         be done manually in data blob)
