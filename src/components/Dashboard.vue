@@ -3,43 +3,51 @@
     <h1>Dashboard</h1>
     <table class="status">
       <tr>
-          <th class="label">Jump drive status:</th>
-          <td class="value">{{ jump.status }}</td>
-          <td class="info">{{ jumpStatusDescription }}</td>
-        </tr>
-        <tr>
-          <th class="label">Jump ready countdown:</th>
-          <td class="value">{{ jumpstate.readyT }}</td>
-          <td class="info">
-            Last jump started
-            <time-ago :time="jump.last_jump" :warn="10020"></time-ago>
-          </td>
-        </tr>
+        <th class="label">Jump drive status:</th>
+        <td class="value">{{ jump.status }}</td>
+        <td class="info">{{ jumpStatusDescription }}</td>
+      </tr>
       <tr>
-          <th class="label">Big battery location:</th>
-          <td class="value">{{ bigBatteryLocation }}</td>
-          <td class="info">Where big battery is currently connected to and whether it is "active"</td>
-        </tr>
-        <tr>
-          <th class="label">Big battery charge:</th>
-          <td class="value">{{ bigBatteryCharge }}</td>
-          <td class="info"></td>
-        </tr>
-        
+        <th class="label">Jump ready countdown:</th>
+        <td class="value">{{ jumpstate.readyT }}</td>
+        <td class="info">
+          Last jump started
+          <time-ago :time="jump.last_jump" :warn="10020"></time-ago>
+        </td>
+      </tr>
+      <tr>
+        <th class="label">Big battery location:</th>
+        <td class="value">{{ bigBatteryLocation }}</td>
+        <td class="info">Where big battery is currently connected to and whether it is "active"</td>
+      </tr>
+      <tr>
+        <th class="label">Big battery charge:</th>
+        <td class="value">{{ bigBatteryCharge }}</td>
+        <td class="info"></td>
+      </tr>
+
     </table>
 
     <h2>Artifacts</h2>
-    <Artifact artifactId="power_source"/>
-    <Artifact artifactId="jump_drive_cooldown"/>
-    <Artifact artifactId="calibration_slot"/>
-    <Artifact artifactId="scan_range_extender"/>
-    <Artifact artifactId="calibration_speedup"/>
+    <Artifact artifactId="power_source" />
+    <Artifact artifactId="jump_drive_cooldown" />
+    <Artifact artifactId="calibration_slot" />
+    <Artifact artifactId="scan_range_extender" />
+    <Artifact artifactId="calibration_speedup" />
+
+    <h2>Fuses</h2>
+    <FuseStatus boxId="fusebox_bridge" />
+    <FuseStatus boxId="fusebox_engineering" />
+    <FuseStatus boxId="fusebox_medbay" />
+    <FuseStatus boxId="fusebox_science" />
+    <FuseStatus boxId="fusebox_lounge" />
   </b-container>
 </template>
 
 <script>
 import TimeAgo from "../components/TimeAgo";
 import Artifact from "../views/Artifact";
+import FuseStatus from "../views/FuseStatus";
 import { BIG_BATTERY_LOCATIONS } from '@/bigbattery';
 
 const JUMP_DRIVE_DESCRIPTION = {
@@ -62,7 +70,7 @@ const JUMP_DRIVE_DESCRIPTION = {
 
 
 export default {
-  components: { TimeAgo, Artifact },
+  components: { TimeAgo, Artifact, FuseStatus },
   computed: {
     bigBatteryLocation() {
       const box = this.$store.state.dataBlobs.find(
