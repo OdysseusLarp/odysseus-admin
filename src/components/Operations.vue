@@ -35,6 +35,14 @@
       >
         Only show operations that are analysed (is_analysed = true)
       </b-form-checkbox>
+      <b-form-checkbox
+        v-model="showAutomatedSamples"
+        name="check-button"
+        switch
+        @change="(e) => filterOperations({ showAutomatedSamples: e })"
+      >
+        Include automated samples
+      </b-form-checkbox>
     </p>
     <b-table
       striped
@@ -95,10 +103,10 @@
         </p>
         <b-button
           v-if="!selectedOperation.is_complete"
-          variant="primary"
-          @click="setCompleted"
-          >Set is completed</b-button
-        >
+          variant="success"
+          @click="() => setIsComplete(true)"
+          >Set as completed
+        </b-button>
       </div>
     </b-modal>
 
@@ -162,7 +170,7 @@
 <script>
 import axios from "axios";
 import { distanceInWordsToNow } from "date-fns";
-import { pushError } from "../helpers";
+import { isAutomatedSample, pushError } from "../helpers";
 import { get } from "lodash";
 
 const SPECIAL_CASE_IDS = new Set(["20019", "20062"]);
@@ -179,6 +187,7 @@ export default {
       selectedOperation: null,
       showPendingOnly: true,
       showAnalysedOnly: true,
+      showAutomatedSamples: false,
       isCreate: true,
       selectedTag: null,
       tagId: "",
@@ -332,12 +341,14 @@ export default {
     filterOperations({
       showPendingOnly = this.showPendingOnly,
       showAnalysedOnly = this.showAnalysedOnly,
+      showAutomatedSamples = this.showAutomatedSamples,
     } = {}) {
       this.filteredOperations = this.operations
         .filter((o) => {
           const shouldShowPending = showPendingOnly ? !o.is_complete : true;
           const shouldShowAnalysed = showAnalysedOnly ? o.is_analysed : true;
-          return shouldShowPending && shouldShowAnalysed;
+          const shouldShowAutomated = showAutomatedSamples ? true : !isAutomatedSample(o);
+          return shouldShowPending && shouldShowAnalysed && shouldShowAutomated;
         })
         .map((o) => {
           // Special cases
@@ -378,11 +389,14 @@ export default {
         .catch((err) => pushError(this.errors, err, this.$notify));
       this.isLoading = false;
     },
-    setCompleted() {
+    setIsComplete(isComplete) {
       const id = get(this.selectedOperation, "id");
       if (!id) return;
+      // Note that this API endpoint cannot currently be used to
+      // set an operation as incomplete, because it triggers side effects
+      // that mark it as complete right away.
       axios
-        .put(`/operation/${id}`, { is_complete: true })
+        .put(`/operation/${id}`, { is_complete: isComplete })
         .then(() => {
           this.$notify({
             title: "Success",

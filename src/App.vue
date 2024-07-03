@@ -117,9 +117,11 @@ export default {
         get(shipMetadata, "data.ee_connection_enabled")
       );
       const npcMessages = messages.data.filter((m) => !m.receiver.is_character);
-      this.operationsPendingCount = (operations.data || []).filter(
-        (o) => o.is_analysed,
-      ).length;
+      this.operationsPendingCount = (operations.data || []).filter((o) => {
+        const isAnalysed = o.is_analysed;
+        const isNotAutomated = !isAutomatedSample(o);
+        return isAnalysed && isNotAutomated;
+      }).length;
       this.socialPendingCount =
         posts.data.length + votes.data.length + npcMessages.length;
     },

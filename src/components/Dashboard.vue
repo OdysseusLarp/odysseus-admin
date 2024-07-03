@@ -27,14 +27,14 @@
       </tr>
 
     </table>
-
+    <hr />
     <h2>Artifacts</h2>
     <Artifact artifactId="power_source" />
     <Artifact artifactId="jump_drive_cooldown" />
     <Artifact artifactId="calibration_slot" />
     <Artifact artifactId="scan_range_extender" />
     <Artifact artifactId="calibration_speedup" />
-
+    <hr />
     <h2>Fuses</h2>
     <FuseStatus boxId="fusebox_bridge" />
     <FuseStatus boxId="fusebox_engineering" />
