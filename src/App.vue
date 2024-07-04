@@ -58,6 +58,7 @@
 import { mapState } from "vuex";
 import axios from "axios";
 import BackendChooser from "@/components/BackendChooser.vue";
+import { isAutomatedSample } from "./helpers";
 import { get } from "lodash-es";
 
 export default {
