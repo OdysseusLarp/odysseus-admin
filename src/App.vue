@@ -6,9 +6,10 @@
       <b-collapse id="nav_collapse" is-nav>
         <b-navbar-nav tabs>
           <b-nav-item to="/data">Data stores</b-nav-item>
-          <b-nav-item to="/jump" :class="{ alerting: jumpNeedsAttention }"
-            >Jump drive</b-nav-item
-          >
+          <b-nav-item to="/jump" :class="{ alerting: jumpNeedsAttention }">
+            Jump drive
+            <b-badge v-if="jumpNeedsAttention" variant="warning">1</b-badge>
+          </b-nav-item>
           <b-nav-item to="/social"
             >Social
             <b-badge v-if="socialPendingCount > 0" variant="warning">{{
@@ -24,9 +25,10 @@
               operationsPendingCount
             }}</b-badge></b-nav-item
           >
-          <b-nav-item to="/emptyepsilon" :class="{ alerting: eeNeedsAttention }"
-            >Empty Epsilon</b-nav-item
-          >
+          <b-nav-item to="/emptyepsilon" :class="{ alerting: eeNeedsAttention }">
+            Empty Epsilon
+            <b-badge v-if="eeNeedsAttention" variant="warning">1</b-badge>
+          </b-nav-item>
           <b-nav-item to="/airlocks">Airlocks</b-nav-item>
           <b-nav-item to="/dmx">DMX</b-nav-item>
         </b-navbar-nav>
@@ -137,12 +139,13 @@ export default {
   a {
     color: #f00 !important;
     text-shadow: none;
+    text-decoration: none;
     animation: alert-blinker 1s linear infinite;
   }
 }
 @keyframes alert-blinker {
   50% {
-    text-shadow: 0px 0px 3px rgba(255, 113, 113, 0.6);
+    text-shadow: 0px 0px 10px rgba(255, 113, 113, 0.8);
   }
 }
 </style>
