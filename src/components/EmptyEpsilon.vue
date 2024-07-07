@@ -92,7 +92,7 @@
               @click="pushFullGameState()"
               >{{
                 isPushGameStatePending
-                  ? `${pushGameStateProgress} / 28`
+                  ? `${pushGameStateProgress} / 30`
                   : "Push current state to EE"
               }}</b-button>
             </div>
@@ -257,6 +257,8 @@ const alertStates = new Map([
   ["yellow", "YELLOW ALERT"],
   ["red", "RED ALERT"],
 ]);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default {
   components: {
@@ -440,6 +442,16 @@ export default {
           this.isLoading = false;
         });
     },
+    async setDamageDmxState(value) {
+      await axios({
+        url: "/emptyepsilon/damage-dmx",
+        baseURL: this.$store.state.backend.uri,
+        method: "post",
+        data: { enableDamageDmx: value },
+      }).catch((error) => {
+        this.errors.push("" + error);
+      });
+    },
     setAlertState(alertState) {
       // Return if a alert state change is already pending or alertState matches current one
       if (
@@ -502,6 +514,11 @@ export default {
       this.pushGameStateProgress = 0;
       this.isPushGameStatePending = true;
       const DELAY_BETWEEN_REQUESTS = 400;
+
+      // Disable damage DMX so that setting healths to lower than 100% doesn't trigger DMX damage effects
+      await this.setDamageDmxState(false);
+      await sleep(DELAY_BETWEEN_REQUESTS);
+
       // Sync system healths and heats first
       this.selectedType = "systems";
       for (const system of systems) {
@@ -515,9 +532,7 @@ export default {
             valueKey,
           ]);
           await this.setValue();
-          await new Promise((resolve) =>
-            setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS),
-          );
+          await sleep(DELAY_BETWEEN_REQUESTS);
           this.pushGameStateProgress = this.pushGameStateProgress + 1;
         }
       }
@@ -528,9 +543,7 @@ export default {
         this.selectedTarget = weapon;
         this.selectedValue = get(this.gameState, ["weapons", `${weapon}Count`]);
         await this.setValue();
-        await new Promise((resolve) =>
-          setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS),
-        );
+        await sleep(DELAY_BETWEEN_REQUESTS);
         this.pushGameStateProgress = this.pushGameStateProgress + 1;
       }
 
@@ -550,11 +563,13 @@ export default {
           value,
           target,
         });
-        await new Promise((resolve) =>
-          setTimeout(() => resolve(), DELAY_BETWEEN_REQUESTS),
-        );
+        await sleep(DELAY_BETWEEN_REQUESTS);
         this.pushGameStateProgress = this.pushGameStateProgress + 1;
       }
+
+      await this.setDamageDmxState(true);
+      await sleep(DELAY_BETWEEN_REQUESTS);
+
       this.pushGameStateProgress = this.pushGameStateProgress + 1;
       this.isPushGameStatePending = false;
       this.$notify({
