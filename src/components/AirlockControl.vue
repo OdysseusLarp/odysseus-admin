@@ -22,6 +22,14 @@
       </li>
       <li>Countdown: <countdown :target="box.countdown_to" /></li>
       <li>
+        Fighters:
+        <span v-if="box.fighters === 'active'"><b>active</b> (cannot open or pressurize from control panel)</span>
+        <span v-else-if="box.fighters === 'launching'"><b>launching</b> (launched from EE, depressurizing soon)</span>
+        <span v-else-if="(box.fighters || 'docked') !== 'docked'"><b>${box.fighters}</b> (unrecognized status!)</span>
+        <span v-else-if="(box.config?.fighter_pads || []).length > 0"><b>all docked</b></span>
+        <span v-else>none</span>
+      </li>
+      <li>
         <label for="accessDenied">Access denied: &nbsp;</label>
         <input type="checkbox" id="accessDenied" :checked="box.access_denied" @change="toggleAccess()">
       </li>
@@ -31,7 +39,7 @@
     <div class="button-group">
       <b-button variant="warning" @click="forceStatus('open')">Unlocked</b-button>
       <b-button variant="warning" @click="forceStatus('closed')">Locked</b-button>
-      <b-button variant="warning" @click="forceStatus('vacuum')" v-if="box.config.allow_depressurize">Vacuum</b-button>
+      <b-button variant="warning" @click="forceStatus('vacuum')" v-if="canDepressurize">Vacuum</b-button>
     </div>
 
     Actions:
@@ -41,13 +49,13 @@
       <b-button variant="outline-warning" @click="sendCommand('stop')">Stop Transition</b-button>
     </div>
 
-    <div class="button-group" v-if="box.config.allow_depressurize">
+    <div class="button-group" v-if="canDepressurize">
       <b-button variant="success" @click="sendCommand('pressurize')">Pressurize</b-button>
       <b-button variant="success" @click="sendCommand('depressurize')">Depressurize</b-button>
-      <b-button variant="success" @click="sendCommand('evacuate')">Emergency Depressurize</b-button>
+      <b-button variant="success" @click="sendCommand('evacuate')" v-if="box.config?.allow_depressurize">Emergency Depressurize</b-button>
     </div>
 
-    <div v-if="box.config.allow_depressurize">
+    <div v-if="box.config?.allow_depressurize">
       For Tristan Fukui (non-interruptible 10 min depressurization):
       <div class="button-group">
         <b-button variant="warning" @click="sendCommand('forceDepressurize')">Force Depressurize</b-button>
@@ -113,6 +121,10 @@ export default {
     timeString(timestamp) {
       if (!timestamp) return "never";
       return "at " + new Date(timestamp).toISOString();
+    },
+    canDepressurize() {
+      const config = this.box.config || {};
+      return config.allow_depressurize || (config.fighter_pads || []).length > 0
     },
   },
 };
