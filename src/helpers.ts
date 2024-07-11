@@ -10,7 +10,15 @@ export function pushError(errors: string[] = [], error: Error | string, $notify?
     });
 }
 
-const AUTOMATED_SAMPLES = ["MATERIAL_SAMPLE", "MICROSCOPE_SAMPLE", "AGE", "HISTORY_SAMPLE", "XRF_SAMPLE"];
+const AUTOMATED_SAMPLES = [
+  "MATERIAL_SAMPLE",
+  "MICROSCOPE_SAMPLE",
+  "AGE",
+  "HISTORY_SAMPLE",
+  "XRF_SAMPLE",
+  "XRF_SCAN",
+  "XRAY_SCAN",
+];
 
 export function isAutomatedSample(sample: any) {
   if (!sample || !sample.additional_type) {
