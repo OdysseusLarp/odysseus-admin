@@ -25,7 +25,16 @@
         <td class="value">{{ bigBatteryCharge }}</td>
         <td class="info"></td>
       </tr>
-
+      <tr>
+        <th class="label">Big battery emergency positions:</th>
+        <td v-if="bigBatteryEmergencyPositions.length" class="value">
+          <div v-for="position in bigBatteryEmergencyPositions" :key="position">
+            {{ position }}
+          </div>
+        </td>
+        <td v-else class="value">None</td>
+        <td class="info"></td>
+      </tr>
     </table>
     <hr />
     <h2>Artifacts</h2>
@@ -84,6 +93,22 @@ export default {
         (key) => BIG_BATTERY_LOCATIONS[key] === box.connected_position,
       );
       return `${locationName || 'Unknown'} (${box.connected_position}) ${box.active ? 'ACTIVE' : ''}`
+    },
+    bigBatteryEmergencyPositions() {
+      const box = this.$store.state.dataBlobs.find(
+        (blob) => blob.type === "box" && blob.id === "bigbattery",
+      );
+      if (!box || !Array.isArray(box.emergency_assumed_at_positions)) {
+        return "Not found";
+      }
+      const emergencyPositions = [];
+      for (const position of box.emergency_assumed_at_positions) {
+        const locationName = Object.keys(BIG_BATTERY_LOCATIONS).find(
+          (key) => BIG_BATTERY_LOCATIONS[key] === position,
+        );
+        emergencyPositions.push(`${locationName || "Unknown"} (${position})`);
+      }
+      return emergencyPositions;
     },
     bigBatteryCharge() {
       const box = this.$store.state.dataBlobs.find(
