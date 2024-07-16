@@ -1,6 +1,16 @@
 # odysseus-admin
 
-Admin UI (for use by GM's) for the [Odysseus backend](https://github.com/OdysseusLarp/odysseus-backend).
+Admin UI for GM use for managing *everything* that goes on in the [Odysseus backend](https://github.com/OdysseusLarp/odysseus-backend).
+
+## Some screenshots
+
+![Screenshot 2024-07-12 at 14 00 39](https://github.com/user-attachments/assets/ffa3cc96-3bac-479e-b7d9-9812bdeb50fa)
+
+![Screenshot 2024-07-12 at 14 00 59](https://github.com/user-attachments/assets/c7c6479f-41c8-4ceb-88ea-a13be46b2b9f)
+
+![Screenshot 2024-07-12 at 14 07 40](https://github.com/user-attachments/assets/5e34425c-a438-4aa4-8248-7082b74a076a)
+
+![Screenshot 2024-07-12 at 14 00 23](https://github.com/user-attachments/assets/afd50de7-85d4-48a7-ba0a-fd38c72646c3)
 
 ## Tech
 
